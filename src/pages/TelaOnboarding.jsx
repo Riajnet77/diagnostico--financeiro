@@ -3,63 +3,66 @@ import React, { useState } from 'react'
 const perguntas = [
   {
     id: 'receita',
+    numero: '01',
     titulo: 'Quanto entra por mês?',
-    subtitulo: 'Soma tudo: salário, freelas, aluguéis, qualquer fonte.',
+    subtitulo: 'Some tudo: salário, freelas, aluguéis, todas as fontes de renda.',
     tipo: 'moeda',
-    placeholder: 'Ex: 5000',
+    placeholder: '0',
+    dica: 'Use o valor líquido (o que cai na sua conta)',
   },
   {
     id: 'gastos',
+    numero: '02',
     titulo: 'Quanto você gasta por mês?',
-    subtitulo: 'Estimativa honesta — aluguel, mercado, conta, lazer, tudo.',
+    subtitulo: 'Estimativa honesta: aluguel, mercado, contas, cartão, tudo.',
     tipo: 'moeda',
-    placeholder: 'Ex: 4200',
+    placeholder: '0',
+    dica: 'Inclua parcelas, assinaturas e gastos variáveis',
   },
   {
     id: 'tipoRenda',
+    numero: '03',
     titulo: 'Sua renda é fixa ou variável?',
-    subtitulo: 'Isso muda o nível de risco do seu caixa.',
+    subtitulo: 'Isso muda completamente o nível de risco do seu caixa.',
     tipo: 'opcao',
     opcoes: [
-      { valor: 'fixa',    label: 'Fixa',     desc: 'Salário CLT ou valor fixo todo mês' },
-      { valor: 'variavel', label: 'Variável', desc: 'Freela, autônomo, comissão' },
-      { valor: 'mista',   label: 'Mista',    desc: 'Parte fixa, parte variável' },
+      { valor: 'fixa',     label: 'Renda fixa',    desc: 'Salário CLT ou valor fixo todo mês', icone: '💼' },
+      { valor: 'variavel', label: 'Renda variável', desc: 'Freela, autônomo, comissão, MEI',    icone: '📊' },
+      { valor: 'mista',    label: 'Renda mista',   desc: 'Parte fixa + parte variável',         icone: '⚖️' },
     ],
   },
   {
     id: 'problema',
-    titulo: 'Qual é seu maior problema hoje?',
-    subtitulo: 'Escolha o que mais te identifica.',
+    numero: '04',
+    titulo: 'Qual é seu maior problema financeiro hoje?',
+    subtitulo: 'Escolha o que mais descreve sua situação real.',
     tipo: 'opcao',
     opcoes: [
-      { valor: 'a', label: 'O dinheiro acaba antes do mês' },
-      { valor: 'b', label: 'Não sei para onde vai' },
-      { valor: 'c', label: 'Ganho bem mas não sobra' },
-      { valor: 'd', label: 'Minha renda é instável' },
+      { valor: 'a', label: 'O dinheiro acaba antes do mês terminar', icone: '📅' },
+      { valor: 'b', label: 'Não sei para onde vai o dinheiro',       icone: '❓' },
+      { valor: 'c', label: 'Ganho bem mas não sobra nada',           icone: '💸' },
+      { valor: 'd', label: 'Tenho renda instável e vivo no limite',  icone: '📉' },
     ],
   },
 ]
 
-function InputMoeda({ valor, onChange, placeholder }) {
-  const [raw, setRaw] = useState('')
+function InputMoeda({ onChange, placeholder }) {
+  const [display, setDisplay] = useState('')
 
   function handleChange(e) {
     const digits = e.target.value.replace(/\D/g, '')
-    setRaw(digits)
-    onChange(Number(digits))
+    if (digits === '') { setDisplay(''); onChange(0); return; }
+    const num = Number(digits)
+    setDisplay(num.toLocaleString('pt-BR'))
+    onChange(num)
   }
-
-  const display = raw
-    ? Number(raw).toLocaleString('pt-BR', { minimumFractionDigits: 0 })
-    : ''
 
   return (
     <div style={{ position: 'relative' }}>
-      <span style={{
-        position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)',
-        fontFamily: 'var(--fonte-titulo)',
-        fontSize: 20, fontWeight: 700, color: '#48484a',
-      }}>R$</span>
+      <div style={{
+        position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)',
+        fontSize: 22, fontWeight: 700, color: '#a3a3a3', pointerEvents: 'none',
+      }}>R$</div>
       <input
         type="tel"
         inputMode="numeric"
@@ -69,19 +72,25 @@ function InputMoeda({ valor, onChange, placeholder }) {
         autoFocus
         style={{
           width: '100%',
-          background: '#1c1c1e',
-          border: '1.5px solid #2c2c2e',
-          borderRadius: 14,
-          padding: '20px 18px 20px 56px',
-          fontSize: 28,
-          fontFamily: 'var(--fonte-titulo)',
-          fontWeight: 700,
-          color: '#f5f2ed',
+          background: '#ffffff',
+          border: '2px solid #e5e5e5',
+          borderRadius: 12,
+          padding: '20px 20px 20px 64px',
+          fontSize: 32,
+          fontWeight: 800,
+          color: '#0f0f0f',
           outline: 'none',
-          transition: 'border-color 0.2s',
+          transition: 'border-color 0.2s, box-shadow 0.2s',
+          letterSpacing: '-0.01em',
         }}
-        onFocus={e => e.target.style.borderColor = '#48484a'}
-        onBlur={e => e.target.style.borderColor = '#2c2c2e'}
+        onFocus={e => {
+          e.target.style.borderColor = '#f97316'
+          e.target.style.boxShadow = '0 0 0 3px rgba(249,115,22,0.1)'
+        }}
+        onBlur={e => {
+          e.target.style.borderColor = '#e5e5e5'
+          e.target.style.boxShadow = 'none'
+        }}
       />
     </div>
   )
@@ -94,28 +103,43 @@ function OpcaoCard({ opcao, selecionada, onSelect }) {
       style={{
         width: '100%',
         textAlign: 'left',
-        padding: '16px 18px',
-        borderRadius: 14,
-        background: selecionada ? '#f5f2ed' : '#1c1c1e',
-        border: `1.5px solid ${selecionada ? '#f5f2ed' : '#2c2c2e'}`,
-        color: selecionada ? '#0a0a0a' : '#f5f2ed',
-        transition: 'all 0.2s',
+        padding: '16px 20px',
+        borderRadius: 12,
+        background: selecionada ? '#fff4ed' : '#ffffff',
+        border: `2px solid ${selecionada ? '#f97316' : '#e5e5e5'}`,
+        color: '#0f0f0f',
+        transition: 'all 0.15s',
         display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
+        alignItems: 'center',
+        gap: 14,
+        cursor: 'pointer',
       }}
+      onMouseEnter={e => { if (!selecionada) e.currentTarget.style.borderColor = '#d4d4d4' }}
+      onMouseLeave={e => { if (!selecionada) e.currentTarget.style.borderColor = '#e5e5e5' }}
     >
-      <span style={{
-        fontFamily: 'var(--fonte-titulo)',
-        fontSize: 15,
-        fontWeight: 700,
-      }}>{opcao.label}</span>
-      {opcao.desc && (
-        <span style={{
-          fontSize: 13,
-          color: selecionada ? '#48484a' : '#8e8e93',
-          fontWeight: 300,
-        }}>{opcao.desc}</span>
+      {opcao.icone && (
+        <span style={{ fontSize: 22, flexShrink: 0 }}>{opcao.icone}</span>
+      )}
+      <div style={{ flex: 1 }}>
+        <div style={{
+          fontSize: 15, fontWeight: 700,
+          color: selecionada ? '#f97316' : '#0f0f0f',
+        }}>{opcao.label}</div>
+        {opcao.desc && (
+          <div style={{ fontSize: 13, color: '#737373', marginTop: 2 }}>{opcao.desc}</div>
+        )}
+      </div>
+      {selecionada && (
+        <div style={{
+          width: 22, height: 22, borderRadius: '50%',
+          background: '#f97316',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
       )}
     </button>
   )
@@ -124,17 +148,16 @@ function OpcaoCard({ opcao, selecionada, onSelect }) {
 export default function TelaOnboarding({ onConcluir }) {
   const [etapa, setEtapa] = useState(0)
   const [respostas, setRespostas] = useState({})
-  const perguntaAtual = perguntas[etapa]
-  const progresso = ((etapa) / perguntas.length) * 100
+  const p = perguntas[etapa]
 
-  function handleValor(valor) {
-    setRespostas(prev => ({ ...prev, [perguntaAtual.id]: valor }))
+  function setValor(val) {
+    setRespostas(prev => ({ ...prev, [p.id]: val }))
   }
 
-  function podeAvancar() {
-    const val = respostas[perguntaAtual.id]
-    if (perguntaAtual.tipo === 'moeda') return val && val > 0
-    return !!val
+  const podeAvancar = () => {
+    const v = respostas[p.id]
+    if (p.tipo === 'moeda') return v && v > 0
+    return !!v
   }
 
   function avancar() {
@@ -142,116 +165,140 @@ export default function TelaOnboarding({ onConcluir }) {
     if (etapa < perguntas.length - 1) {
       setEtapa(e => e + 1)
     } else {
-      // Adiciona temReserva padrão se não perguntado
-      onConcluir({ ...respostas, temReserva: false })
+      onConcluir(respostas)
     }
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      maxWidth: 480,
-      margin: '0 auto',
-      padding: '32px 20px 40px',
-    }}>
-      {/* Barra de progresso */}
-      <div style={{ marginBottom: 40 }}>
-        <div style={{
-          display: 'flex', justifyContent: 'space-between',
-          alignItems: 'center', marginBottom: 10,
-        }}>
-          <span style={{ fontFamily: 'var(--fonte-titulo)', fontSize: 12, color: '#48484a', fontWeight: 600 }}>
+    <div style={{ minHeight: '100vh', background: '#ffffff', display: 'flex', flexDirection: 'column' }}>
+      {/* Header com progresso */}
+      <header style={{ padding: '20px 24px', borderBottom: '1px solid #e5e5e5' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <span style={{ fontWeight: 700, fontSize: 14, color: '#0f0f0f' }}>O Hábito da Economia</span>
+          <span style={{ fontSize: 13, color: '#737373' }}>
             {etapa + 1} de {perguntas.length}
           </span>
-          <button
-            onClick={() => etapa > 0 ? setEtapa(e => e - 1) : null}
-            style={{
-              background: 'none', color: '#48484a', fontSize: 13,
-              padding: '4px 8px', borderRadius: 8,
-              opacity: etapa === 0 ? 0 : 1,
-              transition: 'opacity 0.2s',
-            }}
-          >← Voltar</button>
         </div>
-        <div style={{ height: 3, background: '#1c1c1e', borderRadius: 2 }}>
+        {/* Barra de progresso */}
+        <div style={{ height: 4, background: '#f5f5f5', borderRadius: 2 }}>
           <div style={{
             height: '100%',
             width: `${((etapa + 1) / perguntas.length) * 100}%`,
-            background: '#f5f2ed',
+            background: '#f97316',
             borderRadius: 2,
             transition: 'width 0.4s ease',
           }} />
         </div>
-      </div>
+      </header>
 
-      {/* Pergunta */}
-      <div key={etapa} style={{ flex: 1, animation: 'slideIn 0.35s ease forwards' }}>
-        <h2 style={{
-          fontFamily: 'var(--fonte-titulo)',
-          fontSize: 'clamp(24px, 7vw, 32px)',
-          fontWeight: 800,
-          lineHeight: 1.15,
-          marginBottom: 10,
-          color: '#f5f2ed',
-        }}>{perguntaAtual.titulo}</h2>
+      {/* Conteúdo */}
+      <main style={{
+        flex: 1,
+        maxWidth: 560,
+        margin: '0 auto',
+        padding: '48px 24px 40px',
+        width: '100%',
+      }}>
+        <div key={etapa} style={{ animation: 'slideIn 0.3s ease forwards' }}>
+          {/* Número da pergunta */}
+          <div style={{
+            fontSize: 12, fontWeight: 800, color: '#f97316',
+            letterSpacing: '0.1em', marginBottom: 12,
+          }}>{p.numero} / 04</div>
 
-        <p style={{
-          fontSize: 15, color: '#8e8e93', marginBottom: 32, fontWeight: 300,
-        }}>{perguntaAtual.subtitulo}</p>
+          <h2 style={{
+            fontSize: 'clamp(22px, 6vw, 30px)',
+            fontWeight: 800,
+            color: '#0f0f0f',
+            marginBottom: 8,
+            lineHeight: 1.2,
+            letterSpacing: '-0.01em',
+          }}>{p.titulo}</h2>
 
-        {/* Input por tipo */}
-        {perguntaAtual.tipo === 'moeda' && (
-          <InputMoeda
-            valor={respostas[perguntaAtual.id] || ''}
-            onChange={handleValor}
-            placeholder={perguntaAtual.placeholder}
-          />
+          <p style={{
+            fontSize: 15, color: '#737373', marginBottom: 32, lineHeight: 1.5,
+          }}>{p.subtitulo}</p>
+
+          {/* Input */}
+          {p.tipo === 'moeda' && (
+            <>
+              <InputMoeda onChange={setValor} placeholder={p.placeholder} />
+              {p.dica && (
+                <p style={{ fontSize: 13, color: '#a3a3a3', marginTop: 10 }}>
+                  💡 {p.dica}
+                </p>
+              )}
+            </>
+          )}
+
+          {p.tipo === 'opcao' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {p.opcoes.map(opcao => (
+                <OpcaoCard
+                  key={opcao.valor}
+                  opcao={opcao}
+                  selecionada={respostas[p.id] === opcao.valor}
+                  onSelect={setValor}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Footer com botões */}
+      <footer style={{
+        padding: '16px 24px',
+        borderTop: '1px solid #e5e5e5',
+        background: '#ffffff',
+        display: 'flex',
+        gap: 10,
+        maxWidth: 560,
+        margin: '0 auto',
+        width: '100%',
+      }}>
+        {etapa > 0 && (
+          <button
+            onClick={() => setEtapa(e => e - 1)}
+            style={{
+              padding: '14px 20px',
+              borderRadius: 10,
+              background: '#f5f5f5',
+              color: '#525252',
+              fontSize: 15,
+              fontWeight: 600,
+              border: '1px solid #e5e5e5',
+              transition: 'background 0.15s',
+            }}
+          >← Voltar</button>
         )}
-
-        {perguntaAtual.tipo === 'opcao' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {perguntaAtual.opcoes.map(opcao => (
-              <OpcaoCard
-                key={opcao.valor}
-                opcao={opcao}
-                selecionada={respostas[perguntaAtual.id] === opcao.valor}
-                onSelect={handleValor}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Botão avançar */}
-      <button
-        onClick={avancar}
-        disabled={!podeAvancar()}
-        style={{
-          marginTop: 32,
-          width: '100%',
-          padding: '18px 24px',
-          background: podeAvancar() ? '#f5f2ed' : '#1c1c1e',
-          color: podeAvancar() ? '#0a0a0a' : '#48484a',
-          borderRadius: 16,
-          fontFamily: 'var(--fonte-titulo)',
-          fontSize: 16,
-          fontWeight: 700,
-          transition: 'all 0.2s',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          border: `1.5px solid ${podeAvancar() ? '#f5f2ed' : '#2c2c2e'}`,
-        }}
-      >
-        {etapa < perguntas.length - 1 ? 'Próximo' : 'Ver meu diagnóstico'}
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M4 10h12M10 4l6 6-6 6"
-            stroke={podeAvancar() ? '#0a0a0a' : '#48484a'}
-            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
+        <button
+          onClick={avancar}
+          disabled={!podeAvancar()}
+          style={{
+            flex: 1,
+            padding: '14px 24px',
+            borderRadius: 10,
+            background: podeAvancar() ? '#f97316' : '#e5e5e5',
+            color: podeAvancar() ? '#ffffff' : '#a3a3a3',
+            fontSize: 15,
+            fontWeight: 700,
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            boxShadow: podeAvancar() ? '0 2px 8px rgba(249,115,22,0.3)' : 'none',
+          }}
+        >
+          {etapa < perguntas.length - 1 ? 'Próxima pergunta' : 'Ver meu diagnóstico'}
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+            <path d="M4 10h12M10 4l6 6-6 6"
+              stroke={podeAvancar() ? '#fff' : '#a3a3a3'}
+              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </footer>
     </div>
   )
 }

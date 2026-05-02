@@ -1,74 +1,72 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --preto: #0a0a0a;
-  --branco: #f5f2ed;
-  --verde: #1a6b3c;
-  --verde-claro: #22c55e;
+  --branco: #ffffff;
+  --fundo: #f9f8f6;
+  --preto: #0f0f0f;
+  --preto-suave: #1a1a1a;
+  --laranja: #f97316;
+  --laranja-hover: #ea6c0a;
+  --laranja-claro: #fff4ed;
+  --laranja-borda: #fed7aa;
+  --verde: #16a34a;
+  --verde-claro: #f0fdf4;
+  --verde-borda: #bbf7d0;
   --amarelo: #d97706;
-  --amarelo-claro: #fbbf24;
-  --vermelho: #b91c1c;
-  --vermelho-claro: #f87171;
-  --cinza: #1c1c1e;
-  --cinza-medio: #2c2c2e;
-  --cinza-claro: #48484a;
-  --texto-muted: #8e8e93;
-  --borda: #2c2c2e;
-  --fonte-titulo: 'Syne', sans-serif;
-  --fonte-corpo: 'DM Sans', sans-serif;
+  --amarelo-claro: #fffbeb;
+  --amarelo-borda: #fde68a;
+  --vermelho: #dc2626;
+  --vermelho-claro: #fef2f2;
+  --vermelho-borda: #fecaca;
+  --cinza-100: #f5f5f5;
+  --cinza-200: #e5e5e5;
+  --cinza-300: #d4d4d4;
+  --cinza-400: #a3a3a3;
+  --cinza-500: #737373;
+  --cinza-600: #525252;
+  --cinza-700: #404040;
+  --borda: #e5e5e5;
+  --sombra: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --sombra-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+  --sombra-lg: 0 10px 15px rgba(0,0,0,0.08), 0 4px 6px rgba(0,0,0,0.04);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  --fonte: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 html { font-size: 16px; scroll-behavior: smooth; }
 
 body {
-  background: var(--preto);
-  color: var(--branco);
-  font-family: var(--fonte-corpo);
+  background: var(--fundo);
+  color: var(--preto);
+  font-family: var(--fonte);
   font-weight: 400;
   line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
-#root {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+#root { min-height: 100vh; display: flex; flex-direction: column; }
+button { cursor: pointer; border: none; font-family: var(--fonte); }
+input, select, textarea { font-family: var(--fonte); }
 
-/* Utilitários */
-.container {
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-button {
-  cursor: pointer;
-  border: none;
-  font-family: var(--fonte-corpo);
-}
-
-input {
-  font-family: var(--fonte-corpo);
-}
-
-/* Animações */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.6; }
-}
-
 @keyframes slideIn {
-  from { opacity: 0; transform: translateX(30px); }
+  from { opacity: 0; transform: translateX(24px); }
   to   { opacity: 1; transform: translateX(0); }
 }
+@keyframes pulseRed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.3); }
+  50%       { box-shadow: 0 0 0 10px rgba(220,38,38,0); }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
 
-.fade-up   { animation: fadeUp 0.5s ease forwards; }
-.slide-in  { animation: slideIn 0.4s ease forwards; }
+.fade-up  { animation: fadeUp 0.5s ease forwards; }
+.slide-in { animation: slideIn 0.35s ease forwards; }
