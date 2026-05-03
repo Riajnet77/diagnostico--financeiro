@@ -185,6 +185,72 @@ function ProjecaoAnual({ receita, totalGastos, risco }) {
   )
 }
 
+
+function CardAnaliseRenda({ analiseRenda, receita }) {
+  const { tipoProblema, titulo, corpo, cor, rendaFaltante, rendaMinimaIdeal, precisaAumentarRenda } = analiseRenda
+
+  return (
+    <div style={{
+      background: tipoProblema === 'organizacao' ? '#fffbeb' : '#fff',
+      border: `2px solid ${cor}`,
+      borderRadius: 16,
+      padding: '22px 20px',
+      marginBottom: 16,
+      boxShadow: precisaAumentarRenda ? `0 4px 20px ${cor}25` : 'none',
+    }}>
+      <div style={{
+        fontSize: 11, fontWeight: 800, letterSpacing: '0.1em',
+        textTransform: 'uppercase', color: cor, marginBottom: 10,
+      }}>
+        {precisaAumentarRenda ? '🚨 Alerta de Renda' : '💡 Tipo de Problema'}
+      </div>
+
+      <h3 style={{
+        fontSize: 17, fontWeight: 800, color: '#0f0f0f',
+        marginBottom: 10, lineHeight: 1.3,
+      }}>{titulo}</h3>
+
+      <p style={{ fontSize: 14, color: '#525252', lineHeight: 1.7, marginBottom: precisaAumentarRenda ? 16 : 0 }}>
+        {corpo}
+      </p>
+
+      {precisaAumentarRenda && (
+        <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{
+            flex: 1, background: '#fef2f2', border: '1px solid #fecaca',
+            borderRadius: 10, padding: '14px 12px', textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 11, color: '#991b1b', fontWeight: 700, marginBottom: 4 }}>RENDA ATUAL</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: '#dc2626' }}>{formatarMoeda(receita)}</div>
+          </div>
+          <div style={{
+            display: 'flex', alignItems: 'center', color: '#a3a3a3', fontSize: 18, fontWeight: 700,
+          }}>→</div>
+          <div style={{
+            flex: 1, background: '#f0fdf4', border: '1px solid #bbf7d0',
+            borderRadius: 10, padding: '14px 12px', textAlign: 'center',
+          }}>
+            <div style={{ fontSize: 11, color: '#166534', fontWeight: 700, marginBottom: 4 }}>RENDA IDEAL</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: '#16a34a' }}>{formatarMoeda(rendaMinimaIdeal)}</div>
+          </div>
+        </div>
+      )}
+
+      {precisaAumentarRenda && (
+        <div style={{
+          marginTop: 12, background: '#f9f8f6', borderRadius: 10,
+          padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <span style={{ fontSize: 16 }}>💡</span>
+          <p style={{ fontSize: 13, color: '#525252', lineHeight: 1.5 }}>
+            O Método 6 Caixas mostra como estruturar sua renda atual <strong>e</strong> como criar novas fontes de receita para chegar no nível ideal.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function BadgeRisco({ risco }) {
   return (
     <div style={{
@@ -406,6 +472,9 @@ export default function TelaDiagnostico({ respostas, onReiniciar }) {
           <h3 style={{ fontSize: 20, fontWeight: 800, color: '#0f0f0f', marginBottom: 14, lineHeight: 1.3 }}>{d.titulo}</h3>
           <p style={{ fontSize: 15, color: '#525252', lineHeight: 1.7 }}>{d.analise}</p>
         </div>
+
+        {/* Análise de renda */}
+        <CardAnaliseRenda analiseRenda={d.analiseRenda} receita={d.receita} />
 
         {/* Projeção 12 meses */}
         <ProjecaoAnual receita={d.receita} totalGastos={d.totalGastos} risco={d.risco} />

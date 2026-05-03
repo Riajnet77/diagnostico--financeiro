@@ -196,6 +196,7 @@ export function gerarDiagnostico(respostas) {
     analise: analises[problema] || analises['b'],
     insight: insights[risco.nivel],
     analise6caixas: gerarAnalise6Caixas(receita, respostas),
+    analiseRenda: gerarAnaliseRenda(receita, totalGastos, totalFixos, totalVariaveis, totalCartao),
   }
 }
 
@@ -204,4 +205,52 @@ export function formatarMoeda(valor) {
     style: 'currency', currency: 'BRL',
     minimumFractionDigits: 0, maximumFractionDigits: 0,
   }).format(valor)
+}
+
+// Calcula se o problema é de renda insuficiente ou só de organização
+export function gerarAnaliseRenda(receita, totalGastos, totalFixos, totalVariaveis, totalCartao) {
+  const percentualEssencial = Math.round(((totalFixos + totalVariaveis * 0.6) / receita) * 100)
+  
+  // Renda mínima para os essenciais caberem em 55%
+  const essenciais = totalFixos + (totalVariaveis * 0.6)
+  const rendaMinimaIdeal = Math.ceil(essenciais / 0.55 / 100) * 100
+  const rendaFaltante = Math.max(0, rendaMinimaIdeal - receita)
+
+  // Renda necessária para ter as 6 caixas completas
+  const rendaParaMetodoCompleto = Math.ceil(totalGastos / 0.55 / 100) * 100
+  const faltaParaMetodoCompleto = Math.max(0, rendaParaMetodoCompleto - receita)
+
+  // Tipo de problema
+  let tipoProblema = 'organizacao' // só precisa organizar
+  if (percentualEssencial > 70) tipoProblema = 'renda_critica'     // renda insuficiente
+  else if (percentualEssencial > 60) tipoProblema = 'renda_baixa'  // renda apertada
+
+  const mensagens = {
+    organizacao: {
+      titulo: 'Seu problema é de organização — não de renda.',
+      corpo: `Você tem renda suficiente para aplicar o Método 6 Caixas. O que falta é estrutura: definir para onde vai cada real antes de gastar.`,
+      cor: '#d97706',
+    },
+    renda_baixa: {
+      titulo: 'Sua renda está no limite para cobrir o básico.',
+      corpo: `Com ${formatarMoeda(receita)}/mês, seus essenciais já consomem mais de 60% da renda. Para ter fôlego real, você precisaria de mais ${formatarMoeda(rendaFaltante)}/mês — seja reduzindo custos fixos ou aumentando a receita.`,
+      cor: '#dc2626',
+    },
+    renda_critica: {
+      titulo: 'Seu problema não é só organização — é renda insuficiente.',
+      corpo: `Seus gastos essenciais sozinhos já consomem mais de 70% do que você ganha. Reorganizar as caixas não resolve se não sobra nada para reorganizar. Para o Método funcionar, você precisaria de pelo menos ${formatarMoeda(rendaMinimaIdeal)}/mês — ${formatarMoeda(rendaFaltante)} a mais do que entra hoje.`,
+      cor: '#dc2626',
+    },
+  }
+
+  return {
+    tipoProblema,
+    rendaMinimaIdeal,
+    rendaFaltante,
+    rendaParaMetodoCompleto,
+    faltaParaMetodoCompleto,
+    percentualEssencial,
+    precisaAumentarRenda: tipoProblema !== 'organizacao',
+    ...mensagens[tipoProblema],
+  }
 }
