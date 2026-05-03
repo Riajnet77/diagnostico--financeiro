@@ -35,6 +35,7 @@ export function calcularRisco(dias, percentual) {
 export function gerarDiagnostico(respostas) {
   const { receita, tipoRenda, problema } = respostas
   const { totalFixos, totalCartao, totalVariaveis, totalGastos } = calcularTotais(respostas)
+  const gastos = totalGastos // alias para compatibilidade
 
   const percentualGasto   = Math.round((totalGastos / receita) * 100)
   const percentualFixos   = Math.round((totalFixos / receita) * 100)

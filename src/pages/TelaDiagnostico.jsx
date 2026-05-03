@@ -210,7 +210,7 @@ export default function TelaDiagnostico({ respostas, onReiniciar }) {
         {/* Seção 2: Métricas */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
           <CardMetrica label="Receita mensal" valor={formatarMoeda(d.receita)} />
-          <CardMetrica label="Gastos mensais" valor={formatarMoeda(d.gastos)} corValor={d.risco.cor} />
+          <CardMetrica label="Gastos mensais" valor={formatarMoeda(d.totalGastos)} corValor={d.risco.cor} />
         </div>
 
         <div style={{ marginBottom: 16 }}>
