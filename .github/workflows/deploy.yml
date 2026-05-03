@@ -16,7 +16,16 @@ jobs:
         with:
           node-version: 20
       - run: npm install
-      - run: echo "import { defineConfig } from 'vite'; import react from '@vitejs/plugin-react'; export default defineConfig({ plugins: [react()], base: '/diagnostico--financeiro/' })" > vite.config.js
+      - name: Set base path
+        run: |
+          cat > vite.config.js << 'EOF'
+          import { defineConfig } from 'vite'
+          import react from '@vitejs/plugin-react'
+          export default defineConfig({
+            plugins: [react()],
+            base: '/diagnostico--financeiro/',
+          })
+          EOF
       - run: npm run build
       - uses: peaceiris/actions-gh-pages@v3
         with:
