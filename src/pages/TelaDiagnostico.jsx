@@ -240,25 +240,93 @@ function BarraComprometimento({ percentual, risco }) {
   )
 }
 
-function CardCaixas({ caixas, receita }) {
+function CardCaixas({ analise6caixas, receita }) {
+  const zeradas = analise6caixas.filter(c => c.status === 'zerado').length
+  const risco   = analise6caixas.filter(c => c.status === 'risco').length
+
   return (
-    <div style={{ background: '#ffffff', border: '1px solid #e5e5e5', borderRadius: 16, padding: '24px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-      <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f0f0f', marginBottom: 4 }}>Como o Método dividiria sua renda</h3>
-      <p style={{ fontSize: 13, color: '#737373', marginBottom: 16 }}>Se você aplicasse o Método 6 Caixas com {formatarMoeda(receita)}/mês:</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {caixas.map((c, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: c.cor, flexShrink: 0 }}/>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#0f0f0f' }}>{c.nome}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: c.cor }}>{formatarMoeda(c.valor)}</span>
+    <div style={{ background: '#ffffff', border: '1px solid #e5e5e5', borderRadius: 16, padding: '24px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: 16 }}>
+      <div style={{ fontSize: 11, fontWeight: 800, color: '#f97316', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>
+        Diagnóstico das 6 Caixas
+      </div>
+      <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f0f0f', marginBottom: 4 }}>
+        Onde seu dinheiro está — vs onde deveria estar
+      </h3>
+      <p style={{ fontSize: 13, color: '#737373', marginBottom: 16 }}>
+        Com base nos seus lançamentos de {formatarMoeda(receita)}/mês:
+      </p>
+
+      {/* Resumo rápido */}
+      {(zeradas > 0 || risco > 0) && (
+        <div style={{
+          background: '#fef2f2', border: '1px solid #fecaca',
+          borderRadius: 10, padding: '12px 14px', marginBottom: 16,
+          display: 'flex', gap: 10, alignItems: 'flex-start',
+        }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>🚨</span>
+          <p style={{ fontSize: 13, color: '#991b1b', lineHeight: 1.5, fontWeight: 600 }}>
+            {zeradas} {zeradas === 1 ? 'caixa sem nenhuma alocação' : 'caixas sem nenhuma alocação'}{risco > 0 ? ` e ${risco} acima do limite ideal` : ''}. 
+            Seu dinheiro está concentrado nos gastos — sem destino para o que constrói riqueza.
+          </p>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {analise6caixas.map((c, i) => (
+          <div key={i} style={{
+            background: c.fundo,
+            border: `1.5px solid ${c.borda}`,
+            borderRadius: 12, padding: '14px 16px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 18 }}>{c.icone}</span>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#0f0f0f' }}>{c.nome}</div>
+                  <div style={{ fontSize: 11, color: '#737373' }}>{c.descricao}</div>
+                </div>
               </div>
-              <div style={{ height: 4, background: '#f5f5f5', borderRadius: 2 }}>
-                <div style={{ height: '100%', width: `${c.percentual}%`, background: c.cor, borderRadius: 2, opacity: 0.7 }}/>
+              <div style={{
+                background: c.cor + '20', border: `1px solid ${c.cor}40`,
+                borderRadius: 6, padding: '3px 8px',
+                fontSize: 11, fontWeight: 700, color: c.cor, whiteSpace: 'nowrap',
+              }}>{c.label}</div>
+            </div>
+
+            {/* Barra comparativa */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontSize: 10, color: '#a3a3a3', fontWeight: 600 }}>VOCÊ: {c.realPct}%</span>
+                  <span style={{ fontSize: 10, color: '#a3a3a3', fontWeight: 600 }}>IDEAL: {c.idealPct}%</span>
+                </div>
+                <div style={{ height: 6, background: '#e5e5e5', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
+                  {/* Barra ideal (cinza claro) */}
+                  <div style={{ position: 'absolute', height: '100%', width: `${c.idealPct}%`, background: '#d4d4d4', borderRadius: 3 }}/>
+                  {/* Barra real */}
+                  <div style={{
+                    position: 'absolute', height: '100%',
+                    width: `${Math.min(c.realPct, 100)}%`,
+                    background: c.cor, borderRadius: 3, opacity: 0.85,
+                  }}/>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: c.cor }}>
+                    {c.realValor > 0 ? formatarMoeda(c.realValor) : 'R$ 0'}
+                  </span>
+                  <span style={{ fontSize: 11, color: '#a3a3a3' }}>
+                    ideal: {formatarMoeda(c.idealValor)}
+                  </span>
+                </div>
               </div>
             </div>
-            <span style={{ fontSize: 12, color: '#a3a3a3', width: 30, textAlign: 'right' }}>{c.percentual}%</span>
+
+            {/* Alerta específico */}
+            {c.alerta && (
+              <div style={{ marginTop: 8, fontSize: 12, color: c.cor, fontWeight: 600, lineHeight: 1.4 }}>
+                → {c.alerta}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -344,7 +412,7 @@ export default function TelaDiagnostico({ respostas, onReiniciar }) {
 
         {/* Preview das 6 caixas */}
         <div style={{ marginBottom: 16 }}>
-          <CardCaixas caixas={d.caixas} receita={d.receita} />
+          <CardCaixas analise6caixas={d.analise6caixas} receita={d.receita} />
         </div>
 
         {/* Insight */}

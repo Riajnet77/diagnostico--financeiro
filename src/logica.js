@@ -5,12 +5,10 @@ export const CONFIG = {
 
 export function calcularTotais(respostas) {
   const { fixos, cartao, variaveis } = respostas
-
-  const totalFixos = Object.values(fixos || {}).reduce((a, b) => a + (Number(b) || 0), 0)
-  const totalCartao = Number(cartao || 0)
+  const totalFixos     = Object.values(fixos     || {}).reduce((a, b) => a + (Number(b) || 0), 0)
+  const totalCartao    = Number(cartao || 0)
   const totalVariaveis = Object.values(variaveis || {}).reduce((a, b) => a + (Number(b) || 0), 0)
-  const totalGastos = totalFixos + totalCartao + totalVariaveis
-
+  const totalGastos    = totalFixos + totalCartao + totalVariaveis
   return { totalFixos, totalCartao, totalVariaveis, totalGastos }
 }
 
@@ -18,41 +16,156 @@ export function calcularDias(receita, totalGastos) {
   if (!totalGastos || totalGastos <= 0) return 999
   const sobra = receita - totalGastos
   if (sobra <= 0) return 0
-  const mediaDiaria = totalGastos / 30
-  return Math.floor(sobra / mediaDiaria)
+  return Math.floor((sobra / totalGastos) * 30)
 }
 
 export function calcularRisco(dias, percentual) {
   if (dias <= 0 || percentual >= 100)
-    return { nivel: 'vermelho', label: 'Risco crítico',   cor: '#dc2626', fundo: '#fef2f2', borda: '#fecaca' }
+    return { nivel: 'vermelho', label: 'Risco crítico',  cor: '#dc2626', fundo: '#fef2f2', borda: '#fecaca' }
   if (dias <= 15 || percentual >= 95)
-    return { nivel: 'vermelho', label: 'Risco alto',      cor: '#dc2626', fundo: '#fef2f2', borda: '#fecaca' }
+    return { nivel: 'vermelho', label: 'Risco alto',     cor: '#dc2626', fundo: '#fef2f2', borda: '#fecaca' }
   if (dias <= 30 || percentual >= 85)
-    return { nivel: 'amarelo',  label: 'Atenção',         cor: '#d97706', fundo: '#fffbeb', borda: '#fde68a' }
-  return   { nivel: 'verde',   label: 'Caixa saudável',  cor: '#16a34a', fundo: '#f0fdf4', borda: '#bbf7d0' }
+    return { nivel: 'amarelo',  label: 'Atenção',        cor: '#d97706', fundo: '#fffbeb', borda: '#fde68a' }
+  return   { nivel: 'verde',   label: 'Caixa saudável', cor: '#16a34a', fundo: '#f0fdf4', borda: '#bbf7d0' }
+}
+
+// Compara o que o usuário realmente gasta com o ideal do Método 6 Caixas
+function gerarAnalise6Caixas(receita, respostas) {
+  const { fixos, cartao, variaveis } = respostas
+  const f = fixos     || {}
+  const v = variaveis || {}
+  const c = Number(cartao || 0)
+
+  // O que o usuário REALMENTE gasta em cada caixa
+  const gastoEssencial  = (Number(f.aluguel||0) + Number(f.contasBasicas||0) + Number(f.internetCelular||0) + Number(f.planoSaude||0) + Number(f.parcelasCredito||0) + Number(f.escolaFaculdade||0) + Number(v.alimentacao||0) + Number(v.transporte||0))
+  const gastoCartao     = c
+  const gastoLazer      = Number(v.lazer||0) + Number(v.roupasCompras||0) + Number(v.assinaturas||0)
+  const gastoOutros     = Number(v.outros||0)
+
+  // Percentuais reais
+  const pEssencial = receita > 0 ? Math.round((gastoEssencial / receita) * 100) : 0
+  const pCartao    = receita > 0 ? Math.round((gastoCartao    / receita) * 100) : 0
+  const pLazer     = receita > 0 ? Math.round((gastoLazer     / receita) * 100) : 0
+
+  // Ideal do Método
+  const idealEssencial = 55
+  const idealLF        = 10
+  const idealEducacao  = 10
+  const idealReserva   = 10
+  const idealLazer     = 10
+  const idealDoacao    = 5
+
+  // Status de cada caixa: ok, atencao, risco, zerado
+  function status(real, ideal) {
+    if (real === 0)          return 'zerado'
+    if (real <= ideal)       return 'ok'
+    if (real <= ideal * 1.2) return 'atencao'
+    return 'risco'
+  }
+
+  const statusCores = {
+    ok:      { cor: '#16a34a', fundo: '#f0fdf4', borda: '#bbf7d0', label: 'Dentro do ideal' },
+    atencao: { cor: '#d97706', fundo: '#fffbeb', borda: '#fde68a', label: 'Acima do ideal' },
+    risco:   { cor: '#dc2626', fundo: '#fef2f2', borda: '#fecaca', label: 'Muito acima' },
+    zerado:  { cor: '#a3a3a3', fundo: '#f9f8f6', borda: '#e5e5e5', label: 'Não alocado' },
+  }
+
+  const caixas = [
+    {
+      nome: 'Necessidades Essenciais',
+      icone: '🏠',
+      idealPct: idealEssencial,
+      idealValor: receita * (idealEssencial / 100),
+      realPct: pEssencial,
+      realValor: gastoEssencial,
+      status: status(pEssencial, idealEssencial),
+      descricao: 'Moradia, contas, alimentação, transporte',
+      alerta: pEssencial > idealEssencial
+        ? `Você compromete ${pEssencial}% com essenciais — ${pEssencial - idealEssencial}pp acima do ideal de ${idealEssencial}%.`
+        : null,
+    },
+    {
+      nome: 'Liberdade Financeira',
+      icone: '📈',
+      idealPct: idealLF,
+      idealValor: receita * (idealLF / 100),
+      realPct: 0,
+      realValor: 0,
+      status: 'zerado',
+      descricao: 'Investimentos que geram renda passiva',
+      alerta: 'Você não está alocando nada para construir liberdade financeira.',
+    },
+    {
+      nome: 'Educação',
+      icone: '📚',
+      idealPct: idealEducacao,
+      idealValor: receita * (idealEducacao / 100),
+      realPct: 0,
+      realValor: Number(f.escolaFaculdade || 0),
+      status: Number(f.escolaFaculdade || 0) > 0 ? 'ok' : 'zerado',
+      descricao: 'Cursos, livros, desenvolvimento pessoal',
+      alerta: Number(f.escolaFaculdade || 0) === 0
+        ? 'Sem investimento em educação, sua capacidade de gerar renda fica estagnada.'
+        : null,
+    },
+    {
+      nome: 'Reserva de Emergência',
+      icone: '🛡️',
+      idealPct: idealReserva,
+      idealValor: receita * (idealReserva / 100),
+      realPct: 0,
+      realValor: 0,
+      status: 'zerado',
+      descricao: 'Proteção para imprevistos e meses fracos',
+      alerta: 'Sem reserva, qualquer imprevisto vira dívida.',
+    },
+    {
+      nome: 'Lazer',
+      icone: '🎭',
+      idealPct: idealLazer,
+      idealValor: receita * (idealLazer / 100),
+      realPct: pLazer + pCartao,
+      realValor: gastoLazer + gastoCartao,
+      status: status(pLazer + pCartao, idealLazer),
+      descricao: 'Entretenimento, viagens, prazer sem culpa',
+      alerta: (pLazer + pCartao) > idealLazer
+        ? `Lazer + cartão consomem ${pLazer + pCartao}% da renda — ${pLazer + pCartao - idealLazer}pp acima do ideal.`
+        : null,
+    },
+    {
+      nome: 'Doação',
+      icone: '🤝',
+      idealPct: idealDoacao,
+      idealValor: receita * (idealDoacao / 100),
+      realPct: 0,
+      realValor: 0,
+      status: 'zerado',
+      descricao: 'Contribuição para causas e pessoas',
+      alerta: null,
+    },
+  ]
+
+  return caixas.map(c => ({ ...c, ...statusCores[c.status] }))
 }
 
 export function gerarDiagnostico(respostas) {
   const { receita, tipoRenda, problema } = respostas
   const { totalFixos, totalCartao, totalVariaveis, totalGastos } = calcularTotais(respostas)
-  const gastos = totalGastos // alias para compatibilidade
 
-  const percentualGasto   = Math.round((totalGastos / receita) * 100)
-  const percentualFixos   = Math.round((totalFixos / receita) * 100)
-  const percentualCartao  = Math.round((totalCartao / receita) * 100)
+  const percentualGasto     = Math.round((totalGastos / receita) * 100)
+  const percentualFixos     = Math.round((totalFixos  / receita) * 100)
+  const percentualCartao    = Math.round((totalCartao / receita) * 100)
   const percentualVariaveis = Math.round((totalVariaveis / receita) * 100)
-  const sobra             = receita - totalGastos
-  const dias              = calcularDias(receita, totalGastos)
-  const risco             = calcularRisco(dias, percentualGasto)
+  const sobra               = receita - totalGastos
+  const dias                = calcularDias(receita, totalGastos)
+  const risco               = calcularRisco(dias, percentualGasto)
 
-  // Alertas específicos
   const alertas = []
-  if (percentualCartao > 30) alertas.push(`Seu cartão de crédito consome ${percentualCartao}% da sua renda — isso é o maior risco do seu caixa.`)
-  if (percentualFixos > 60)  alertas.push(`Seus compromissos fixos já comprometem ${percentualFixos}% da sua renda — pouco espaço para respirar.`)
-  if (sobra < 0)             alertas.push(`Você está gastando ${formatarMoeda(Math.abs(sobra))} a mais do que ganha todo mês.`)
-  if (tipoRenda === 'variavel' && percentualGasto > 80) alertas.push('Renda variável com alto comprometimento é a combinação mais perigosa.')
+  if (percentualCartao > 30) alertas.push(`Seu cartão consome ${percentualCartao}% da sua renda.`)
+  if (percentualFixos > 60)  alertas.push(`Seus fixos comprometem ${percentualFixos}% da renda.`)
+  if (sobra < 0)             alertas.push(`Você gasta ${formatarMoeda(Math.abs(sobra))} a mais do que ganha.`)
+  if (tipoRenda === 'variavel' && percentualGasto > 80) alertas.push('Renda variável com alto comprometimento é perigoso.')
 
-  // Títulos por problema
   const titulos = {
     a: 'Seu dinheiro vai acabar antes do mês terminar.',
     b: 'Seu dinheiro some sem deixar rastro.',
@@ -60,48 +173,29 @@ export function gerarDiagnostico(respostas) {
     d: 'Renda instável sem estrutura é uma bomba-relógio.',
   }
 
-  // Análise por problema
   const analises = {
-    a: `Você compromete ${percentualGasto}% da sua renda com gastos — sendo ${percentualFixos}% fixos e ${percentualCartao}% no cartão. Com esse ritmo, ${sobra <= 0 ? 'seu caixa já está negativo' : `sobram apenas ${formatarMoeda(sobra)} por mês`}. O dinheiro não está sumindo por acaso: ele está sendo consumido por compromissos que cresceram mais rápido que a sua renda.`,
-    b: `Você ganha ${formatarMoeda(receita)} e compromete ${percentualGasto}% com gastos. O problema não é falta de dinheiro — é falta de visibilidade. ${percentualCartao > 20 ? `Só no cartão de crédito já vão ${percentualCartao}% da sua renda, muitas vezes em gastos que você mal lembra.` : 'Sem um destino definido para cada real, o dinheiro se dissolve em pequenos gastos invisíveis.'}`,
-    c: `Ganhar bem sem método é o perfil mais perigoso. Você tem ${formatarMoeda(receita)} de receita mas compromete ${percentualGasto}% com gastos. ${percentualCartao > 25 ? `O cartão de crédito é o principal vilão: ${percentualCartao}% da sua renda vai para lá todo mês.` : 'A sensação de que não sobra nada é real — e vai continuar enquanto não houver um destino definido para cada parte do seu dinheiro.'}`,
-    d: `Renda variável com ${percentualGasto}% de comprometimento significa que qualquer mês abaixo da média vira crise. ${totalCartao > 0 ? `Com ${formatarMoeda(totalCartao)} fixos no cartão independente do que entrar, você não tem margem de segurança.` : 'Você precisa de um caixa de proteção funcionando antes de qualquer outra coisa.'}`,
+    a: `Você compromete ${percentualGasto}% da sua renda — sendo ${percentualFixos}% fixos e ${percentualCartao}% no cartão. ${sobra <= 0 ? 'Seu caixa já está negativo.' : `Sobram apenas ${formatarMoeda(sobra)} por mês.`} O dinheiro não está sumindo por acaso.`,
+    b: `Você ganha ${formatarMoeda(receita)} e compromete ${percentualGasto}%. ${percentualCartao > 20 ? `Só no cartão já vão ${percentualCartao}% da sua renda.` : 'Sem destino definido para cada real, o dinheiro se dissolve.'}`,
+    c: `Você tem ${formatarMoeda(receita)} de receita mas compromete ${percentualGasto}%. ${percentualCartao > 25 ? `O cartão é o principal vilão: ${percentualCartao}% da renda.` : 'Sem um método, a sensação de que não sobra nada vai continuar.'}`,
+    d: `Renda variável com ${percentualGasto}% de comprometimento: qualquer mês fraco vira crise. ${totalCartao > 0 ? `Com ${formatarMoeda(totalCartao)} no cartão todo mês, não há margem de segurança.` : 'Você precisa de um caixa de proteção agora.'}`,
   }
 
   const insights = {
-    verde:    'Seu caixa ainda tem fôlego, mas sem estrutura de divisão, qualquer imprevisto muda esse cenário.',
-    amarelo:  'Você está na zona de alerta. Com o Método 6 Caixas, cada real tem um destino antes de você gastar — e seu caixa para de apertar.',
-    vermelho: 'Este é o diagnóstico que mais importa ter. Você precisa de uma estrutura agora — não amanhã. O Método 6 Caixas foi criado exatamente para sair desse nível.',
+    verde:    'Seu caixa ainda tem fôlego, mas sem estrutura qualquer imprevisto muda esse cenário.',
+    amarelo:  'Você está na zona de alerta. Com o Método 6 Caixas, cada real tem um destino antes de você gastar.',
+    vermelho: 'Você precisa de uma estrutura agora — não amanhã. O Método 6 Caixas foi criado exatamente para isso.',
   }
 
   return {
     dias: dias > 365 ? 365 : dias < 0 ? 0 : dias,
     diasTexto: dias > 365 ? '365+' : dias <= 0 ? '0' : String(dias),
-    risco,
-    percentualGasto,
-    percentualFixos,
-    percentualCartao,
-    percentualVariaveis,
-    sobra,
-    receita,
-    totalGastos,
-    totalFixos,
-    totalCartao,
-    totalVariaveis,
-    tipoRenda,
-    problema,
-    alertas,
-    titulo: titulos[problema] || titulos['b'],
+    risco, percentualGasto, percentualFixos, percentualCartao, percentualVariaveis,
+    sobra, receita, totalGastos, totalFixos, totalCartao, totalVariaveis,
+    tipoRenda, problema, alertas,
+    titulo:  titulos[problema]  || titulos['b'],
     analise: analises[problema] || analises['b'],
     insight: insights[risco.nivel],
-    caixas: [
-      { nome: 'Necessidades Essenciais', percentual: 55, valor: receita * 0.55, cor: '#f97316' },
-      { nome: 'Liberdade Financeira',    percentual: 10, valor: receita * 0.10, cor: '#16a34a' },
-      { nome: 'Educação',                percentual: 10, valor: receita * 0.10, cor: '#2563eb' },
-      { nome: 'Reserva de Emergência',   percentual: 10, valor: receita * 0.10, cor: '#7c3aed' },
-      { nome: 'Lazer',                   percentual: 10, valor: receita * 0.10, cor: '#db2777' },
-      { nome: 'Doação',                  percentual:  5, valor: receita * 0.05, cor: '#0891b2' },
-    ],
+    analise6caixas: gerarAnalise6Caixas(receita, respostas),
   }
 }
 
