@@ -221,6 +221,7 @@ export default function TelaOnboarding({ onConcluir }) {
     problema:'', receita:0, tipoRenda:'',
     fixos:     { aluguel:0, contasBasicas:0, internetCelular:0, planoSaude:0, parcelasCredito:0, escolaFaculdade:0 },
     cartao:    0,
+    usoCartao: '',
     variaveis: { alimentacao:0, transporte:0, lazer:0, assinaturas:0, roupasCompras:0, outros:0 },
   })
 
@@ -423,6 +424,47 @@ export default function TelaOnboarding({ onConcluir }) {
               <p style={{ fontSize:12, color:'#a3a3a3', marginTop:8, paddingLeft:4 }}>
                 Inclua compras parceladas, assinaturas e qualquer gasto no crédito
               </p>
+
+              {/* Pergunta de uso do cartão */}
+              {dados.cartao > 0 && (
+                <div style={{ marginTop:14 }}>
+                  <p style={{ fontSize:13, fontWeight:700, color:'#0f0f0f', marginBottom:10 }}>
+                    Seu cartão é usado principalmente para:
+                  </p>
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {[
+                      { valor:'essencial', icone:'🏠', label:'Pagar contas do dia a dia', desc:'Mercado, combustível, contas, remédios' },
+                      { valor:'lazer',     icone:'🎭', label:'Lazer e compras',            desc:'Restaurantes, roupas, viagens, entretenimento' },
+                      { valor:'misto',     icone:'⚖️', label:'Os dois misturados',         desc:'Tanto essencial quanto lazer' },
+                    ].map(o => (
+                      <button
+                        key={o.valor}
+                        onClick={() => setDados(d=>({...d, usoCartao:o.valor}))}
+                        style={{
+                          width:'100%', textAlign:'left', padding:'12px 16px',
+                          borderRadius:10, cursor:'pointer',
+                          background: dados.usoCartao === o.valor ? '#fef2f2' : '#fff',
+                          border:`1.5px solid ${dados.usoCartao === o.valor ? '#dc2626' : '#e5e5e5'}`,
+                          display:'flex', alignItems:'center', gap:12, transition:'all 0.15s',
+                        }}
+                      >
+                        <span style={{ fontSize:18, flexShrink:0 }}>{o.icone}</span>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:14, fontWeight:700, color: dados.usoCartao === o.valor ? '#dc2626' : '#0f0f0f' }}>{o.label}</div>
+                          <div style={{ fontSize:12, color:'#737373', marginTop:1 }}>{o.desc}</div>
+                        </div>
+                        {dados.usoCartao === o.valor && (
+                          <div style={{ width:20, height:20, borderRadius:'50%', background:'#dc2626', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                              <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div style={{ height:1, background:'#e5e5e5', margin:'20px 0' }} />

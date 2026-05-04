@@ -36,10 +36,15 @@ function gerarAnalise6Caixas(receita, respostas) {
   const v = variaveis || {}
   const c = Number(cartao || 0)
 
+  // Distribui cartão conforme uso declarado
+  const usoCartao = respostas.usoCartao || 'misto'
+  const cartaoEssencial = usoCartao === 'essencial' ? c * 0.80 : usoCartao === 'lazer' ? c * 0.20 : c * 0.50
+  const cartaoLazer     = usoCartao === 'essencial' ? c * 0.20 : usoCartao === 'lazer' ? c * 0.80 : c * 0.50
+
   // O que o usuário REALMENTE gasta em cada caixa
-  const gastoEssencial  = (Number(f.aluguel||0) + Number(f.contasBasicas||0) + Number(f.internetCelular||0) + Number(f.planoSaude||0) + Number(f.parcelasCredito||0) + Number(f.escolaFaculdade||0) + Number(v.alimentacao||0) + Number(v.transporte||0))
+  const gastoEssencial  = (Number(f.aluguel||0) + Number(f.contasBasicas||0) + Number(f.internetCelular||0) + Number(f.planoSaude||0) + Number(f.parcelasCredito||0) + Number(f.escolaFaculdade||0) + Number(v.alimentacao||0) + Number(v.transporte||0)) + cartaoEssencial
   const gastoCartao     = c
-  const gastoLazer      = Number(v.lazer||0) + Number(v.roupasCompras||0) + Number(v.assinaturas||0)
+  const gastoLazer      = Number(v.lazer||0) + Number(v.roupasCompras||0) + Number(v.assinaturas||0) + cartaoLazer
   const gastoOutros     = Number(v.outros||0)
 
   // Percentuais reais
