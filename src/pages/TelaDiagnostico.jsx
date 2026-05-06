@@ -400,7 +400,7 @@ function CardCaixas({ analise6caixas, receita }) {
   )
 }
 
-export default function TelaDiagnostico({ respostas, onReiniciar }) {
+export default function TelaDiagnostico({ respostas, onReiniciar, onEditar }) {
   const [mostrarEmail, setMostrarEmail] = useState(false)
   const [email, setEmail] = useState('')
   const [emailSalvo, setEmailSalvo] = useState(false)
