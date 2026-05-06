@@ -36,21 +36,27 @@ function gerarAnalise6Caixas(receita, respostas) {
   const v = variaveis || {}
   const c = Number(cartao || 0)
 
-  // Distribui cartão conforme uso declarado
+  // Gastos diretos sem cartão
+  const fixosEssencial   = Number(f.aluguel||0) + Number(f.contasBasicas||0) + Number(f.internetCelular||0) + Number(f.planoSaude||0) + Number(f.parcelasCredito||0)
+  const fixosEducacao    = Number(f.escolaFaculdade||0)
+  const variaveisEssencial = Number(v.alimentacao||0) + Number(v.transporte||0)
+  const variaveisLazer   = Number(v.lazer||0) + Number(v.roupasCompras||0) + Number(v.assinaturas||0)
+
+  // Distribui cartão conforme uso declarado pelo usuário
   const usoCartao = respostas.usoCartao || 'misto'
   const cartaoEssencial = usoCartao === 'essencial' ? c * 0.80 : usoCartao === 'lazer' ? c * 0.20 : c * 0.50
   const cartaoLazer     = usoCartao === 'essencial' ? c * 0.20 : usoCartao === 'lazer' ? c * 0.80 : c * 0.50
 
-  // O que o usuário REALMENTE gasta em cada caixa
-  const gastoEssencial  = (Number(f.aluguel||0) + Number(f.contasBasicas||0) + Number(f.internetCelular||0) + Number(f.planoSaude||0) + Number(f.parcelasCredito||0) + Number(f.escolaFaculdade||0) + Number(v.alimentacao||0) + Number(v.transporte||0)) + cartaoEssencial
-  const gastoCartao     = c
-  const gastoLazer      = Number(v.lazer||0) + Number(v.roupasCompras||0) + Number(v.assinaturas||0) + cartaoLazer
-  const gastoOutros     = Number(v.outros||0)
+  // Totais por caixa
+  const gastoEssencial = fixosEssencial + variaveisEssencial + cartaoEssencial
+  const gastoLazer     = variaveisLazer + cartaoLazer
+  const gastoEducacao  = fixosEducacao
 
   // Percentuais reais
   const pEssencial = receita > 0 ? Math.round((gastoEssencial / receita) * 100) : 0
-  const pCartao    = receita > 0 ? Math.round((gastoCartao    / receita) * 100) : 0
   const pLazer     = receita > 0 ? Math.round((gastoLazer     / receita) * 100) : 0
+  const pEducacao  = receita > 0 ? Math.round((gastoEducacao  / receita) * 100) : 0
+  const pCartao    = receita > 0 ? Math.round((c / receita) * 100) : 0
 
   // Ideal do Método
   const idealEssencial = 55
@@ -131,11 +137,11 @@ function gerarAnalise6Caixas(receita, respostas) {
       idealValor: receita * (idealLazer / 100),
       realPct: pLazer,
       realValor: gastoLazer,
-      status: status(pLazer, idealLazer),
-      descricao: 'Entretenimento, viagens, prazer sem culpa',
+      status: gastoLazer === 0 ? 'zerado' : status(pLazer, idealLazer),
+      descricao: 'Restaurantes, roupas, viagens, entretenimento',
       alerta: pLazer > idealLazer
         ? `Seus gastos com lazer consomem ${pLazer}% da renda — ${pLazer - idealLazer}pp acima do ideal.`
-        : null,
+        : gastoLazer === 0 ? 'Nenhum gasto com lazer registrado.' : null,
     },
     {
       nome: 'Doação',
