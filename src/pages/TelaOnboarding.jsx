@@ -180,9 +180,9 @@ function TelaLoading({ onConcluir }) {
 
 const ETAPAS = ['problema', 'receita', 'despesas', 'loading']
 
-export default function TelaOnboarding({ onConcluir }) {
-  const [etapa, setEtapa] = useState(0)
-  const [dados, setDados] = useState({
+export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
+  const [etapa, setEtapa] = useState(dadosIniciais ? 2 : 0) // se tem dados, vai direto para despesas
+  const [dados, setDados] = useState(dadosIniciais || {
     problema:'', receita:0, tipoRenda:'',
     fixos: { aluguel:0, contasBasicas:0, internetCelular:0, planoSaude:0, parcelasCredito:0, escolaFaculdade:0 },
     cartao: 0,
@@ -431,4 +431,3 @@ export default function TelaOnboarding({ onConcluir }) {
     </div>
   )
 }
-"// cache bust" 
