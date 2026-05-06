@@ -23,16 +23,27 @@ export default function App() {
     setTela(TELAS.INICIO)
   }
 
+  function editarLancamentos() {
+    setTela(TELAS.ONBOARDING)
+  }
+
   return (
     <>
       {tela === TELAS.INICIO && (
         <TelaInicio onAvancar={() => setTela(TELAS.ONBOARDING)} />
       )}
       {tela === TELAS.ONBOARDING && (
-        <TelaOnboarding onConcluir={handleOnboardingConcluido} />
+        <TelaOnboarding
+          dadosIniciais={respostas}
+          onConcluir={handleOnboardingConcluido}
+        />
       )}
       {tela === TELAS.DIAGNOSTICO && respostas && (
-        <TelaDiagnostico respostas={respostas} onReiniciar={reiniciar} />
+        <TelaDiagnostico
+          respostas={respostas}
+          onReiniciar={reiniciar}
+          onEditar={editarLancamentos}
+        />
       )}
     </>
   )
