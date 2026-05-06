@@ -129,12 +129,12 @@ function gerarAnalise6Caixas(receita, respostas) {
       icone: '🎭',
       idealPct: idealLazer,
       idealValor: receita * (idealLazer / 100),
-      realPct: pLazer + pCartao,
-      realValor: gastoLazer + gastoCartao,
-      status: status(pLazer + pCartao, idealLazer),
+      realPct: pLazer,
+      realValor: gastoLazer,
+      status: status(pLazer, idealLazer),
       descricao: 'Entretenimento, viagens, prazer sem culpa',
-      alerta: (pLazer + pCartao) > idealLazer
-        ? `Lazer + cartão consomem ${pLazer + pCartao}% da renda — ${pLazer + pCartao - idealLazer}pp acima do ideal.`
+      alerta: pLazer > idealLazer
+        ? `Seus gastos com lazer consomem ${pLazer}% da renda — ${pLazer - idealLazer}pp acima do ideal.`
         : null,
     },
     {
