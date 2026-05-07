@@ -43,9 +43,16 @@ function gerarAnalise6Caixas(receita, respostas) {
   const variaveisLazer   = Number(v.lazer||0) + Number(v.roupasCompras||0) + Number(v.assinaturas||0)
 
   // Distribui cartão conforme uso declarado pelo usuário
-  const usoCartao = respostas.usoCartao || 'misto'
-  const cartaoEssencial = usoCartao === 'essencial' ? c * 0.80 : usoCartao === 'lazer' ? c * 0.20 : c * 0.50
-  const cartaoLazer     = usoCartao === 'essencial' ? c * 0.20 : usoCartao === 'lazer' ? c * 0.80 : c * 0.50
+  // Se não tem lazer preenchido, cartão não gera lazer artificial
+  const usoCartao = respostas.usoCartao || 'essencial'
+  const temLazer  = variaveisLazer > 0
+
+  const cartaoEssencial = usoCartao === 'lazer' ? c * 0.10
+                        : usoCartao === 'misto' && temLazer ? c * 0.50
+                        : c * 0.90
+  const cartaoLazer     = usoCartao === 'lazer' ? c * 0.80
+                        : usoCartao === 'misto' && temLazer ? c * 0.40
+                        : 0
 
   // Totais por caixa
   const gastoEssencial = fixosEssencial + variaveisEssencial + cartaoEssencial
@@ -154,6 +161,18 @@ function gerarAnalise6Caixas(receita, respostas) {
       descricao: 'Contribuição para causas e pessoas',
       alerta: null,
     },
+    ...(cartaoNaoAlocado > 0 ? [{
+      nome: 'Cartão de Crédito',
+      icone: '💳',
+      idealPct: 0,
+      idealValor: 0,
+      realPct: receita > 0 ? Math.round((cartaoNaoAlocado / receita) * 100) : 0,
+      realValor: cartaoNaoAlocado,
+      status: 'risco',
+      cor: '#dc2626', fundo: '#fef2f2', borda: '#fecaca', label: 'Sem destino definido',
+      descricao: 'Você não classificou o uso do cartão',
+      alerta: 'Sem saber para onde vai o cartão, é impossível organizar as caixas. Classifique o uso do cartão na etapa anterior.',
+    }] : []),
   ]
 
   return caixas.map(c => ({ ...c, ...statusCores[c.status] }))
