@@ -36,34 +36,28 @@ function gerarAnalise6Caixas(receita, respostas) {
   const v = variaveis || {}
   const c = Number(cartao || 0)
 
-  // Gastos diretos sem cartão
-  const fixosEssencial   = Number(f.aluguel||0) + Number(f.contasBasicas||0) + Number(f.internetCelular||0) + Number(f.planoSaude||0) + Number(f.parcelasCredito||0)
-  const fixosEducacao    = Number(f.escolaFaculdade||0)
-  const variaveisEssencial = Number(v.alimentacao||0) + Number(v.transporte||0)
-  const variaveisLazer   = Number(v.lazer||0) + Number(v.roupasCompras||0) + Number(v.assinaturas||0)
+  // Essencial = fixos + mercado + transporte (sem cartão)
+  const gastoEssencial = Number(f.aluguel||0) + Number(f.contasBasicas||0) + Number(f.internetCelular||0) +
+                         Number(f.planoSaude||0) + Number(f.parcelasCredito||0) +
+                         Number(v.alimentacao||0) + Number(v.transporte||0)
 
-  // Distribui cartão conforme uso declarado pelo usuário
-  // Se não tem lazer preenchido, cartão não gera lazer artificial
-  const usoCartao = respostas.usoCartao || 'essencial'
-  const temLazer  = variaveisLazer > 0
+  // Educação = escola/faculdade apenas
+  const gastoEducacao = Number(f.escolaFaculdade||0)
 
-  const cartaoEssencial = usoCartao === 'lazer' ? c * 0.10
-                        : usoCartao === 'misto' && temLazer ? c * 0.50
-                        : c * 0.90
-  const cartaoLazer     = usoCartao === 'lazer' ? c * 0.80
-                        : usoCartao === 'misto' && temLazer ? c * 0.40
-                        : 0
+  // Lazer = só gastos variáveis de lazer — cartão NÃO entra aqui
+  const gastoLazer = Number(v.lazer||0) + Number(v.roupasCompras||0) + Number(v.assinaturas||0)
 
-  // Totais por caixa
-  const gastoEssencial = fixosEssencial + variaveisEssencial + cartaoEssencial
-  const gastoLazer     = variaveisLazer + cartaoLazer
-  const gastoEducacao  = fixosEducacao
+  // Outros
+  const gastoOutros = Number(v.outros||0)
 
-  // Percentuais reais
+  // Cartão = meio de pagamento, aparece separado como alerta
+  const gastoCartao = c
+
+  // Percentuais
   const pEssencial = receita > 0 ? Math.round((gastoEssencial / receita) * 100) : 0
-  const pLazer     = receita > 0 ? Math.round((gastoLazer     / receita) * 100) : 0
   const pEducacao  = receita > 0 ? Math.round((gastoEducacao  / receita) * 100) : 0
-  const pCartao    = receita > 0 ? Math.round((c / receita) * 100) : 0
+  const pLazer     = receita > 0 ? Math.round((gastoLazer     / receita) * 100) : 0
+  const pCartao    = receita > 0 ? Math.round((gastoCartao    / receita) * 100) : 0
 
   // Ideal do Método
   const idealEssencial = 55
@@ -73,7 +67,6 @@ function gerarAnalise6Caixas(receita, respostas) {
   const idealLazer     = 10
   const idealDoacao    = 5
 
-  // Status de cada caixa: ok, atencao, risco, zerado
   function status(real, ideal) {
     if (real === 0)          return 'zerado'
     if (real <= ideal)       return 'ok'
@@ -118,11 +111,11 @@ function gerarAnalise6Caixas(receita, respostas) {
       icone: '📚',
       idealPct: idealEducacao,
       idealValor: receita * (idealEducacao / 100),
-      realPct: 0,
-      realValor: Number(f.escolaFaculdade || 0),
-      status: Number(f.escolaFaculdade || 0) > 0 ? 'ok' : 'zerado',
+      realPct: pEducacao,
+      realValor: gastoEducacao,
+      status: status(pEducacao, idealEducacao),
       descricao: 'Cursos, livros, desenvolvimento pessoal',
-      alerta: Number(f.escolaFaculdade || 0) === 0
+      alerta: gastoEducacao === 0
         ? 'Sem investimento em educação, sua capacidade de gerar renda fica estagnada.'
         : null,
     },
@@ -161,21 +154,22 @@ function gerarAnalise6Caixas(receita, respostas) {
       descricao: 'Contribuição para causas e pessoas',
       alerta: null,
     },
-    ...(cartaoNaoAlocado > 0 ? [{
+    // Cartão aparece como alerta separado quando há fatura
+    ...(gastoCartao > 0 ? [{
       nome: 'Cartão de Crédito',
       icone: '💳',
       idealPct: 0,
       idealValor: 0,
-      realPct: receita > 0 ? Math.round((cartaoNaoAlocado / receita) * 100) : 0,
-      realValor: cartaoNaoAlocado,
+      realPct: pCartao,
+      realValor: gastoCartao,
       status: 'risco',
-      cor: '#dc2626', fundo: '#fef2f2', borda: '#fecaca', label: 'Sem destino definido',
-      descricao: 'Você não classificou o uso do cartão',
-      alerta: 'Sem saber para onde vai o cartão, é impossível organizar as caixas. Classifique o uso do cartão na etapa anterior.',
+      cor: '#dc2626', fundo: '#fef2f2', borda: '#fecaca', label: '⚠️ Atenção',
+      descricao: 'Meio de pagamento — precisa de destino definido',
+      alerta: `Sua fatura de ${formatarMoeda(gastoCartao)} (${pCartao}% da renda) precisa ser distribuída nas caixas acima. Use o Método para saber quanto de cada caixa está indo no cartão.`,
     }] : []),
   ]
 
-  return caixas.map(c => ({ ...c, ...statusCores[c.status] }))
+  return caixas.map(c => c.cor ? c : ({ ...c, ...statusCores[c.status] }))
 }
 
 export function gerarDiagnostico(respostas) {
