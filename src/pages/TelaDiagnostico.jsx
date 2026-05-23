@@ -297,7 +297,7 @@ function BarraComprometimento({ percentual, risco }) {
   )
 }
 
-// NOVO: Card de composição dos gastos (Fixos / Cartão / Variáveis)
+// Card de composição dos gastos (Fixos / Cartão / Variáveis)
 function CardComposicaoGastos({ totalFixos, totalCartao, totalVariaveis, totalGastos }) {
   const itens = [
     { label: 'Fixos', valor: totalFixos, cor: '#525252', icone: '📌' },
@@ -441,19 +441,68 @@ function CardCaixas({ analise6caixas, receita }) {
 }
 
 // ─────────────────────────────────────────────
-//  BLOCO CTA — usa campos do diagnóstico
+//  BLOCO CTA — com Formspree + localStorage + validação real
 // ─────────────────────────────────────────────
 function BlocoCTA({ d, onIrParaMetodo }) {
   const [mostrarEmail, setMostrarEmail] = useState(false)
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => {
+    // ✅ Carrega email do localStorage se existir
+    return localStorage.getItem('email_lead_diagnostico') || ''
+  })
   const [emailSalvo, setEmailSalvo] = useState(false)
+  const [erroEmail, setErroEmail] = useState('')
+  const [enviando, setEnviando] = useState(false)
 
-  function salvarEmail(e) {
+  // ✅ Regex de email válido
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+  async function salvarEmail(e) {
     e.preventDefault()
-    if (email && email.includes('@')) {
-      console.log('Lead:', { email, dias: d.dias, risco: d.risco.nivel, receita: d.receita })
-      setEmailSalvo(true)
-      setTimeout(onIrParaMetodo, 1000)
+    setErroEmail('')
+
+    // ✅ Validação real
+    if (!email) {
+      setErroEmail('Digite seu email para continuar')
+      return
+    }
+    if (!emailRegex.test(email)) {
+      setErroEmail('Email inválido. Use formato: seu@email.com')
+      return
+    }
+
+    setEnviando(true)
+
+    try {
+      // ✅ Envia para Formspree
+      const response = await fetch('https://formspree.io/f/SEU_ID_AQUI', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          dias_sobrevivencia: d.dias,
+          nivel_risco: d.risco.nivel,
+          receita: d.receita,
+          gastos: d.totalGastos,
+          tipo_problema: d.analiseRenda.tipoProblema,
+          data: new Date().toISOString()
+        })
+      })
+
+      if (response.ok) {
+        // ✅ Salva no localStorage para lembrar na próxima vez
+        localStorage.setItem('email_lead_diagnostico', email)
+        setEmailSalvo(true)
+        setTimeout(onIrParaMetodo, 1500)
+      } else {
+        setErroEmail('Erro ao enviar. Tente novamente.')
+      }
+    } catch (err) {
+      setErroEmail('Erro de conexão. Verifique sua internet.')
+    } finally {
+      setEnviando(false)
     }
   }
 
@@ -512,40 +561,79 @@ function BlocoCTA({ d, onIrParaMetodo }) {
         </button>
       ) : emailSalvo ? (
         <div style={{ textAlign: 'center', padding: '16px', color: '#16a34a', fontWeight: 700, fontSize: 15 }}>
-          ✓ Redirecionando...
+          ✓ Email salvo! Redirecionando para o Método 6 Caixas...
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <p style={{ fontSize: 13, color: '#737373', marginBottom: 4 }}>Quer receber dicas sobre organização financeira? (opcional)</p>
+        <form onSubmit={salvarEmail} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <p style={{ fontSize: 13, color: '#737373', marginBottom: 4 }}>
+            {email ? 'Email encontrado:' : 'Quer receber dicas sobre organização financeira? (opcional)'}
+          </p>
+
           <input
             type="email"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={e => {
+              setEmail(e.target.value)
+              setErroEmail('')  // Limpa erro ao digitar
+            }}
             placeholder="seu@email.com"
+            disabled={enviando}
             style={{
-              padding: '14px 16px', background: '#1a1a1a', border: '1px solid #2c2c2c',
+              padding: '14px 16px', 
+              background: erroEmail ? '#2a0808' : '#1a1a1a', 
+              border: `1.5px solid ${erroEmail ? '#dc2626' : '#2c2c2c'}`,
               borderRadius: 10, fontSize: 15, color: '#ffffff', outline: 'none',
+              transition: 'border-color 0.2s',
             }}
           />
+
+          {/* ✅ Feedback de erro */}
+          {erroEmail && (
+            <div style={{ 
+              fontSize: 12, color: '#f87171', fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: 6 
+            }}>
+              <span>⚠️</span> {erroEmail}
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               type="button"
               onClick={onIrParaMetodo}
+              disabled={enviando}
               style={{
                 flex: 1, padding: '13px', borderRadius: 10,
                 background: 'transparent', border: '1px solid #2c2c2c',
                 color: '#737373', fontSize: 13, fontWeight: 600,
+                opacity: enviando ? 0.5 : 1,
               }}
-            >Pular</button>
+            >
+              Pular
+            </button>
             <button
-              onClick={salvarEmail}
+              type="submit"
+              disabled={enviando}
               style={{
                 flex: 2, padding: '13px', borderRadius: 10,
                 background: corBotao, color: '#ffffff', fontSize: 14, fontWeight: 700,
+                opacity: enviando ? 0.7 : 1,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
-            >Acessar →</button>
+            >
+              {enviando ? (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" style={{ animation: 'spin 1s linear infinite' }}>
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Enviando...
+                </>
+              ) : (
+                'Acessar o Método →'
+              )}
+            </button>
           </div>
-        </div>
+        </form>
       )}
     </div>
   )
@@ -625,7 +713,7 @@ export default function TelaDiagnostico({ respostas, onReiniciar, onEditar }) {
         {/* Projeção 12 meses */}
         <ProjecaoAnual receita={d.receita} totalGastos={d.totalGastos} risco={d.risco} />
 
-        {/* NOVO: Composição dos gastos */}
+        {/* Composição dos gastos */}
         <CardComposicaoGastos
           totalFixos={d.totalFixos}
           totalCartao={d.totalCartao}
