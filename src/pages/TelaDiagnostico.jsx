@@ -45,7 +45,6 @@ function ProjecaoAnual({ receita, totalGastos, risco }) {
         }}/>
       )}
 
-      {/* Header */}
       <div style={{ marginBottom: 20, position: 'relative' }}>
         <div style={{
           fontSize: 11, fontWeight: 800,
@@ -60,12 +59,11 @@ function ProjecaoAnual({ receita, totalGastos, risco }) {
           lineHeight: 1.3,
         }}>
           {deficitario
-            ? 'Você vai acumular dívidas ao longo do ano'
+            ? 'Esse ciclo vai acumular dívidas ao longo do ano'
             : 'Evolução do seu caixa ao longo do ano'}
         </h3>
       </div>
 
-      {/* Gráfico de barras */}
       <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: 90, marginBottom: 6 }}>
         {mesesDados.map((m, i) => {
           const hR = animado ? (m.receita / maxVal) * 100 : 0
@@ -93,7 +91,6 @@ function ProjecaoAnual({ receita, totalGastos, risco }) {
         })}
       </div>
 
-      {/* Labels meses */}
       <div style={{ display: 'flex', gap: 3, marginBottom: 16 }}>
         {mesesDados.map((m, i) => (
           <div key={i} style={{
@@ -104,7 +101,6 @@ function ProjecaoAnual({ receita, totalGastos, risco }) {
         ))}
       </div>
 
-      {/* Legenda */}
       <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
         {[
           { cor: deficitario ? '#1f2937' : '#d1d5db', label: 'Receita' },
@@ -119,7 +115,6 @@ function ProjecaoAnual({ receita, totalGastos, risco }) {
 
       <div style={{ height: 1, background: deficitario ? '#1f2937' : '#e5e5e5', marginBottom: 16 }}/>
 
-      {/* Cards receita / gastos anuais */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
         <div style={{
           flex: 1, borderRadius: 12, padding: '14px 12px',
@@ -139,14 +134,12 @@ function ProjecaoAnual({ receita, totalGastos, risco }) {
         </div>
       </div>
 
-      {/* Resultado anual — destaque máximo */}
       <div style={{
         background: deficitario ? '#1a0808' : '#f0fdf4',
         border: `2px solid ${deficitario ? '#dc2626' : '#bbf7d0'}`,
         borderRadius: 14, padding: '18px 16px',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         boxShadow: deficitario ? '0 0 24px rgba(220,38,38,0.4)' : 'none',
-        animation: deficitario && animado ? 'pulseRed 2s ease infinite' : 'none',
       }}>
         <div>
           <div style={{
@@ -156,7 +149,7 @@ function ProjecaoAnual({ receita, totalGastos, risco }) {
             {deficitario ? '⚠️ DÉFICIT ANUAL' : '✅ SALDO ANUAL'}
           </div>
           <div style={{ fontSize: 12, color: deficitario ? '#9ca3af' : '#737373' }}>
-            {deficitario ? 'Dívida acumulada em 12 meses' : 'Projeção de sobra ao final do ano'}
+            {deficitario ? 'Dívida acumulada em 12 meses se o ciclo continuar' : 'Projeção de sobra ao final do ano'}
           </div>
         </div>
         <div style={{
@@ -168,7 +161,6 @@ function ProjecaoAnual({ receita, totalGastos, risco }) {
         </div>
       </div>
 
-      {/* Alerta extra para déficit grave */}
       {deficitario && Math.abs(saldoAnual) > receita * 2 && (
         <div style={{
           marginTop: 10, background: '#7f1d1d',
@@ -177,7 +169,7 @@ function ProjecaoAnual({ receita, totalGastos, risco }) {
         }}>
           <span style={{ fontSize: 18, flexShrink: 0 }}>🚨</span>
           <p style={{ fontSize: 13, color: '#fca5a5', lineHeight: 1.5, fontWeight: 600 }}>
-            Em 12 meses você vai acumular um déficit equivalente a {Math.round(Math.abs(saldoAnual) / receita)} meses de renda. Isso exige ação imediata.
+            Em 12 meses esse ciclo acumula um déficit equivalente a {Math.round(Math.abs(saldoAnual) / receita)} meses de renda. Esse é o custo de manter o padrão atual.
           </p>
         </div>
       )}
@@ -202,7 +194,7 @@ function CardAnaliseRenda({ analiseRenda, receita }) {
         fontSize: 11, fontWeight: 800, letterSpacing: '0.1em',
         textTransform: 'uppercase', color: cor, marginBottom: 10,
       }}>
-        {precisaAumentarRenda ? '🚨 Alerta de Renda' : '💡 Tipo de Problema'}
+        {precisaAumentarRenda ? '🚨 Alerta de Renda' : '💡 Tipo de Ciclo'}
       </div>
 
       <h3 style={{
@@ -322,7 +314,6 @@ function CardCaixas({ analise6caixas, receita }) {
         Com base nos seus lançamentos de {formatarMoeda(receita)}/mês:
       </p>
 
-      {/* Resumo rápido */}
       {(zeradas > 0 || risco > 0) && (
         <div style={{
           background: '#fef2f2', border: '1px solid #fecaca',
@@ -331,8 +322,8 @@ function CardCaixas({ analise6caixas, receita }) {
         }}>
           <span style={{ fontSize: 18, flexShrink: 0 }}>🚨</span>
           <p style={{ fontSize: 13, color: '#991b1b', lineHeight: 1.5, fontWeight: 600 }}>
-            {zeradas} {zeradas === 1 ? 'caixa sem nenhuma alocação' : 'caixas sem nenhuma alocação'}{risco > 0 ? ` e ${risco} acima do limite ideal` : ''}. 
-            Seu dinheiro está concentrado nos gastos — sem destino para o que constrói riqueza.
+            {zeradas} {zeradas === 1 ? 'caixa sem nenhuma alocação' : 'caixas sem nenhuma alocação'}{risco > 0 ? ` e ${risco} ${risco === 1 ? 'acima do limite ideal' : 'acima do limite ideal'}` : ''}. 
+            Seu dinheiro está concentrado num único ciclo — sem construir reserva, investimento ou liberdade.
           </p>
         </div>
       )}
@@ -359,7 +350,6 @@ function CardCaixas({ analise6caixas, receita }) {
               }}>{c.label}</div>
             </div>
 
-            {/* Barra comparativa */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -367,9 +357,7 @@ function CardCaixas({ analise6caixas, receita }) {
                   <span style={{ fontSize: 10, color: '#a3a3a3', fontWeight: 600 }}>IDEAL: {c.idealPct}%</span>
                 </div>
                 <div style={{ height: 6, background: '#e5e5e5', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
-                  {/* Barra ideal (cinza claro) */}
                   <div style={{ position: 'absolute', height: '100%', width: `${c.idealPct}%`, background: '#d4d4d4', borderRadius: 3 }}/>
-                  {/* Barra real */}
                   <div style={{
                     position: 'absolute', height: '100%',
                     width: `${Math.min(c.realPct, 100)}%`,
@@ -387,7 +375,6 @@ function CardCaixas({ analise6caixas, receita }) {
               </div>
             </div>
 
-            {/* Alerta específico */}
             {c.alerta && (
               <div style={{ marginTop: 8, fontSize: 12, color: c.cor, fontWeight: 600, lineHeight: 1.4 }}>
                 → {c.alerta}
@@ -400,24 +387,132 @@ function CardCaixas({ analise6caixas, receita }) {
   )
 }
 
-export default function TelaDiagnostico({ respostas, onReiniciar, onEditar }) {
+// ─────────────────────────────────────────────
+//  BLOCO CTA — usa campos do diagnóstico
+// ─────────────────────────────────────────────
+function BlocoCTA({ d, onIrParaMetodo }) {
   const [mostrarEmail, setMostrarEmail] = useState(false)
   const [email, setEmail] = useState('')
   const [emailSalvo, setEmailSalvo] = useState(false)
+
+  function salvarEmail(e) {
+    e.preventDefault()
+    if (email && email.includes('@')) {
+      console.log('Lead:', { email, dias: d.dias, risco: d.risco.nivel, receita: d.receita })
+      setEmailSalvo(true)
+      setTimeout(onIrParaMetodo, 1000)
+    }
+  }
+
+  // Cor de destaque para endividados (vermelho) vs padrão (laranja)
+  const corBotao = d.ctaDestaque ? '#dc2626' : '#f97316'
+  const corBotaoHover = d.ctaDestaque ? '#b91c1c' : '#ea6c0a'
+  const corSombra = d.ctaDestaque
+    ? 'rgba(220,38,38,0.4)'
+    : 'rgba(249,115,22,0.4)'
+
+  return (
+    <div style={{
+      background: '#0f0f0f',
+      border: d.ctaDestaque ? '2px solid #dc2626' : 'none',
+      borderRadius: 20, padding: '28px 24px', marginBottom: 12,
+      boxShadow: d.ctaDestaque ? '0 0 32px rgba(220,38,38,0.2)' : 'none',
+    }}>
+      {/* Badge para endividados */}
+      {d.ctaDestaque && (
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          background: '#7f1d1d', borderRadius: 9999, padding: '4px 12px',
+          marginBottom: 12,
+        }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#fca5a5', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            🚨 Passo zero identificado
+          </span>
+        </div>
+      )}
+
+      {!d.ctaDestaque && (
+        <div style={{ fontSize: 11, fontWeight: 800, color: '#f97316', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
+          A solução
+        </div>
+      )}
+
+      <h3 style={{ fontSize: 20, fontWeight: 800, color: '#ffffff', marginBottom: 10, lineHeight: 1.3 }}>
+        {d.ctaTitulo}
+      </h3>
+      <p style={{ fontSize: 14, color: '#a3a3a3', lineHeight: 1.65, marginBottom: 24 }}>
+        {d.ctaTexto}
+      </p>
+
+      {!mostrarEmail ? (
+        <button
+          onClick={() => setMostrarEmail(true)}
+          style={{
+            width: '100%', padding: '16px 24px', background: corBotao, color: '#ffffff',
+            borderRadius: 12, fontSize: 16, fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            boxShadow: `0 4px 14px ${corSombra}`, transition: 'all 0.2s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = corBotaoHover}
+          onMouseLeave={e => e.currentTarget.style.background = corBotao}
+        >
+          {d.ctaLabel}
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+            <path d="M4 10h12M10 4l6 6-6 6" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      ) : emailSalvo ? (
+        <div style={{ textAlign: 'center', padding: '16px', color: '#16a34a', fontWeight: 700, fontSize: 15 }}>
+          ✓ Redirecionando...
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <p style={{ fontSize: 13, color: '#737373', marginBottom: 4 }}>Quer receber dicas sobre organização financeira? (opcional)</p>
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="seu@email.com"
+            style={{
+              padding: '14px 16px', background: '#1a1a1a', border: '1px solid #2c2c2c',
+              borderRadius: 10, fontSize: 15, color: '#ffffff', outline: 'none',
+            }}
+          />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              onClick={onIrParaMetodo}
+              style={{
+                flex: 1, padding: '13px', borderRadius: 10,
+                background: 'transparent', border: '1px solid #2c2c2c',
+                color: '#737373', fontSize: 13, fontWeight: 600,
+              }}
+            >Pular</button>
+            <button
+              onClick={salvarEmail}
+              style={{
+                flex: 2, padding: '13px', borderRadius: 10,
+                background: corBotao, color: '#ffffff', fontSize: 14, fontWeight: 700,
+              }}
+            >Acessar →</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+//  TELA PRINCIPAL
+// ─────────────────────────────────────────────
+export default function TelaDiagnostico({ respostas, onReiniciar, onEditar }) {
   const [animouDias, setAnimouDias] = useState(false)
 
   const d = gerarDiagnostico(respostas)
   useEffect(() => { setTimeout(() => setAnimouDias(true), 300) }, [])
 
-  function irParaMetodo() { window.open(CONFIG.CTA_URL, '_blank') }
-
-  function salvarEmail(e) {
-    e.preventDefault()
-    if (email && email.includes('@')) {
-      console.log('Lead:', { email, ...d })
-      setEmailSalvo(true)
-      setTimeout(irParaMetodo, 1000)
-    }
+  function irParaMetodo() {
+    window.open(d.ctaUrl, '_blank')
   }
 
   return (
@@ -442,14 +537,14 @@ export default function TelaDiagnostico({ respostas, onReiniciar, onEditar }) {
           boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
         }}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: d.risco.cor }}/>
-          <p style={{ fontSize: 14, color: '#737373', marginBottom: 8, fontWeight: 500 }}>Seu caixa dura aproximadamente</p>
+          <p style={{ fontSize: 14, color: '#737373', marginBottom: 8, fontWeight: 500 }}>Com esse ciclo de gastos, seu caixa dura</p>
           <div style={{
             fontSize: 'clamp(72px, 20vw, 100px)', fontWeight: 900, color: d.risco.cor,
             lineHeight: 1, letterSpacing: '-0.04em', marginBottom: 4,
             animation: animouDias ? 'countUp 0.5s ease forwards' : 'none',
           }}>{d.diasTexto}</div>
           <p style={{ fontSize: 18, fontWeight: 700, color: '#0f0f0f', marginBottom: 8 }}>dias</p>
-          <p style={{ fontSize: 14, color: '#737373' }}>com o seu ritmo atual de gastos</p>
+          <p style={{ fontSize: 14, color: '#737373' }}>sem mudança de estrutura</p>
         </div>
 
         {/* Métricas mensais */}
@@ -468,7 +563,9 @@ export default function TelaDiagnostico({ respostas, onReiniciar, onEditar }) {
           borderRadius: 16, padding: '24px 20px', marginBottom: 16,
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: '#f97316', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>Seu diagnóstico</div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: '#f97316', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
+            Seu diagnóstico
+          </div>
           <h3 style={{ fontSize: 20, fontWeight: 800, color: '#0f0f0f', marginBottom: 14, lineHeight: 1.3 }}>{d.titulo}</h3>
           <p style={{ fontSize: 15, color: '#525252', lineHeight: 1.7 }}>{d.analise}</p>
         </div>
@@ -496,61 +593,16 @@ export default function TelaDiagnostico({ respostas, onReiniciar, onEditar }) {
           <p style={{ fontSize: 14, color: '#525252', lineHeight: 1.6 }}>{d.insight}</p>
         </div>
 
-        {/* CTA */}
-        <div style={{ background: '#0f0f0f', borderRadius: 20, padding: '28px 24px', marginBottom: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: '#f97316', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>A solução</div>
-          <h3 style={{ fontSize: 20, fontWeight: 800, color: '#ffffff', marginBottom: 10, lineHeight: 1.3 }}>
-            O Método 6 Caixas resolve exatamente o que você acabou de ver.
-          </h3>
-          <p style={{ fontSize: 14, color: '#a3a3a3', lineHeight: 1.65, marginBottom: 24 }}>
-            Uma planilha estruturada que divide sua renda em 6 destinos antes de você gastar — e faz seu dinheiro durar o mês inteiro.
-          </p>
-          {!mostrarEmail ? (
-            <button onClick={() => setMostrarEmail(true)} style={{
-              width: '100%', padding: '16px 24px', background: '#f97316', color: '#ffffff',
-              borderRadius: 12, fontSize: 16, fontWeight: 700,
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              boxShadow: '0 4px 14px rgba(249,115,22,0.4)', transition: 'all 0.2s',
-            }}
-              onMouseEnter={e => e.currentTarget.style.background = '#ea6c0a'}
-              onMouseLeave={e => e.currentTarget.style.background = '#f97316'}
-            >
-              {CONFIG.CTA_LABEL}
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                <path d="M4 10h12M10 4l6 6-6 6" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-          ) : emailSalvo ? (
-            <div style={{ textAlign: 'center', padding: '16px', color: '#16a34a', fontWeight: 700, fontSize: 15 }}>
-              ✓ Abrindo o Método 6 Caixas...
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <p style={{ fontSize: 13, color: '#737373', marginBottom: 4 }}>Quer receber dicas sobre organização financeira? (opcional)</p>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" style={{
-                padding: '14px 16px', background: '#1a1a1a', border: '1px solid #2c2c2c',
-                borderRadius: 10, fontSize: 15, color: '#ffffff', outline: 'none',
-              }}/>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={irParaMetodo} style={{
-                  flex: 1, padding: '13px', borderRadius: 10,
-                  background: 'transparent', border: '1px solid #2c2c2c',
-                  color: '#737373', fontSize: 13, fontWeight: 600,
-                }}>Pular</button>
-                <button onClick={salvarEmail} style={{
-                  flex: 2, padding: '13px', borderRadius: 10,
-                  background: '#f97316', color: '#ffffff', fontSize: 14, fontWeight: 700,
-                }}>Acessar o Método →</button>
-              </div>
-            </div>
-          )}
-        </div>
+        {/* CTA — diferenciado por perfil */}
+        <BlocoCTA d={d} onIrParaMetodo={irParaMetodo} />
 
         {/* Refazer */}
-        <button onClick={onReiniciar} style={{
-          width: '100%', padding: '13px', background: 'transparent', color: '#a3a3a3',
-          fontSize: 13, borderRadius: 10, border: '1px solid #e5e5e5', transition: 'color 0.15s',
-        }}
+        <button
+          onClick={onReiniciar}
+          style={{
+            width: '100%', padding: '13px', background: 'transparent', color: '#a3a3a3',
+            fontSize: 13, borderRadius: 10, border: '1px solid #e5e5e5', transition: 'color 0.15s',
+          }}
           onMouseEnter={e => e.currentTarget.style.color = '#525252'}
           onMouseLeave={e => e.currentTarget.style.color = '#a3a3a3'}
         >
