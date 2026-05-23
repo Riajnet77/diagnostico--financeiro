@@ -177,7 +177,6 @@ function ProjecaoAnual({ receita, totalGastos, risco }) {
   )
 }
 
-
 function CardAnaliseRenda({ analiseRenda, receita }) {
   const { tipoProblema, titulo, corpo, cor, rendaFaltante, rendaMinimaIdeal, precisaAumentarRenda } = analiseRenda
 
@@ -298,6 +297,60 @@ function BarraComprometimento({ percentual, risco }) {
   )
 }
 
+// NOVO: Card de composição dos gastos (Fixos / Cartão / Variáveis)
+function CardComposicaoGastos({ totalFixos, totalCartao, totalVariaveis, totalGastos }) {
+  const itens = [
+    { label: 'Fixos', valor: totalFixos, cor: '#525252', icone: '📌' },
+    { label: 'Cartão', valor: totalCartao, cor: '#dc2626', icone: '💳' },
+    { label: 'Variáveis', valor: totalVariaveis, cor: '#f97316', icone: '📊' },
+  ]
+
+  return (
+    <div style={{ background: '#ffffff', border: '1px solid #e5e5e5', borderRadius: 16, padding: '24px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: 16 }}>
+      <div style={{ fontSize: 11, fontWeight: 800, color: '#f97316', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>
+        Composição dos Gastos
+      </div>
+      <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f0f0f', marginBottom: 4 }}>
+        De onde vem o que você gasta
+      </h3>
+      <p style={{ fontSize: 13, color: '#737373', marginBottom: 16 }}>
+        Total: {formatarMoeda(totalGastos)}
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {itens.map((item, i) => {
+          const pct = totalGastos > 0 ? Math.round((item.valor / totalGastos) * 100) : 0
+          return (
+            <div key={i}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>{item.icone}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#0f0f0f' }}>{item.label}</span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: item.valor > 0 ? item.cor : '#d4d4d4' }}>
+                    {item.valor > 0 ? formatarMoeda(item.valor) : 'R$ 0'}
+                  </span>
+                  <span style={{ fontSize: 12, color: '#a3a3a3', marginLeft: 6 }}>({pct}%)</span>
+                </div>
+              </div>
+              <div style={{ height: 6, background: '#f5f5f5', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', borderRadius: 3,
+                  width: `${pct}%`,
+                  background: item.cor,
+                  opacity: item.valor > 0 ? 0.85 : 0.2,
+                  transition: 'width 1s cubic-bezier(0.4,0,0.2,1)',
+                }}/>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function CardCaixas({ analise6caixas, receita }) {
   const zeradas = analise6caixas.filter(c => c.status === 'zerado').length
   const risco   = analise6caixas.filter(c => c.status === 'risco').length
@@ -322,7 +375,7 @@ function CardCaixas({ analise6caixas, receita }) {
         }}>
           <span style={{ fontSize: 18, flexShrink: 0 }}>🚨</span>
           <p style={{ fontSize: 13, color: '#991b1b', lineHeight: 1.5, fontWeight: 600 }}>
-            {zeradas} {zeradas === 1 ? 'caixa sem nenhuma alocação' : 'caixas sem nenhuma alocação'}{risco > 0 ? ` e ${risco} ${risco === 1 ? 'acima do limite ideal' : 'acima do limite ideal'}` : ''}. 
+            {zeradas} {zeradas === 1 ? 'caixa sem nenhuma alocação' : 'caixas sem nenhuma alocação'}{risco > 0 ? ` e ${risco} ${risco === 1 ? 'acima do limite ideal' : 'acima do limite ideal'}` : ''}.
             Seu dinheiro está concentrado num único ciclo — sem construir reserva, investimento ou liberdade.
           </p>
         </div>
@@ -404,12 +457,9 @@ function BlocoCTA({ d, onIrParaMetodo }) {
     }
   }
 
-  // Cor de destaque para endividados (vermelho) vs padrão (laranja)
   const corBotao = d.ctaDestaque ? '#dc2626' : '#f97316'
   const corBotaoHover = d.ctaDestaque ? '#b91c1c' : '#ea6c0a'
-  const corSombra = d.ctaDestaque
-    ? 'rgba(220,38,38,0.4)'
-    : 'rgba(249,115,22,0.4)'
+  const corSombra = d.ctaDestaque ? 'rgba(220,38,38,0.4)' : 'rgba(249,115,22,0.4)'
 
   return (
     <div style={{
@@ -418,7 +468,6 @@ function BlocoCTA({ d, onIrParaMetodo }) {
       borderRadius: 20, padding: '28px 24px', marginBottom: 12,
       boxShadow: d.ctaDestaque ? '0 0 32px rgba(220,38,38,0.2)' : 'none',
     }}>
-      {/* Badge para endividados */}
       {d.ctaDestaque && (
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -575,6 +624,14 @@ export default function TelaDiagnostico({ respostas, onReiniciar, onEditar }) {
 
         {/* Projeção 12 meses */}
         <ProjecaoAnual receita={d.receita} totalGastos={d.totalGastos} risco={d.risco} />
+
+        {/* NOVO: Composição dos gastos */}
+        <CardComposicaoGastos
+          totalFixos={d.totalFixos}
+          totalCartao={d.totalCartao}
+          totalVariaveis={d.totalVariaveis}
+          totalGastos={d.totalGastos}
+        />
 
         {/* Preview das 6 caixas */}
         <div style={{ marginBottom: 16 }}>
