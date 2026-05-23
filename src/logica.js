@@ -85,8 +85,8 @@ function calcularAnaliseRenda(receita, totalGastos) {
 
   if (totalGastos > receita) {
     tipoProblema = 'deficit'
-    titulo = 'Você está num ciclo de déficit — e ele tem saída'
-    corpo = 'Seus gastos superam sua renda, criando um ciclo que se auto-alimenta: falta dinheiro, você usa crédito, os juros aumentam os gastos do mês seguinte. Isso não é falta de esforço — é estrutura. O Método 6 Caixas inclui um plano de saída da dívida: um caminho de 3 a 6 meses para fechar o buraco e então estruturar as 6 caixas com a renda que você já tem.'
+    titulo = 'Sua renda não cobre o mínimo necessário'
+    corpo = 'Para sair do déficit sem cortar até o osso, você precisa de mais renda. A matemática é simples: seus gastos são ' + formatarMoeda(totalGastos) + ' e sua renda é ' + formatarMoeda(receita) + '. O Método 6 Caixas inclui estratégias para aumentar renda e um plano de saída da dívida: primeiro fecha o buraco, depois estrutura as 6 caixas.'
     cor = '#dc2626'
   } else if (percentual > 85) {
     tipoProblema = 'compressao'
