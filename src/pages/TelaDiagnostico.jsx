@@ -474,7 +474,7 @@ function BlocoCTA({ d, onIrParaMetodo }) {
 
     try {
       // ✅ Envia para Formspree
-      const response = await fetch('https://formspree.io/f/SEU_ID_AQUI', {
+      const response = await fetch('https://formspree.io/f/mzdwvaaw', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
