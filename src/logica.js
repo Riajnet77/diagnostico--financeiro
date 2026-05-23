@@ -1,10 +1,13 @@
 // ─────────────────────────────────────────────
-//  CONFIGURAÇÃO — troque só estas duas linhas
+//  CONFIGURAÇÃO — URL do Método 6 Caixas
 // ─────────────────────────────────────────────
 export const CONFIG = {
-  CTA_URL: 'https://SEU-LINK-DE-VENDA-AQUI.com',
-  CTA_LABEL: 'Quero o Método 6 Caixas',
-  CTA_URL_DIVIDA: 'https://SEU-LINK-PLANO-DIVIDA-AQUI.com', // link alternativo para endividados
+  // URL de produção do Método 6 Caixas
+  CTA_URL: 'https://metodo6caixas.vercel.app/login',
+  CTA_LABEL: 'Acessar o Método 6 Caixas',
+  // Para endividados: mesmo destino, mensagem diferente
+  // (o método já inclui o plano de saída da dívida)
+  CTA_LABEL_DIVIDA: 'Ver plano de saída — incluído no Método',
 }
 
 // ─────────────────────────────────────────────
@@ -51,11 +54,30 @@ function calcularRisco(dias, percentualGasto) {
 }
 
 // ─────────────────────────────────────────────
+//  CALCULAR TOTAIS — lê estrutura real do onboarding
+// ─────────────────────────────────────────────
+function calcularTotais(respostas) {
+  const fixos = respostas?.fixos || {}
+  const variaveis = respostas?.variaveis || {}
+  const cartao = parseFloat(respostas?.cartao) || 0
+
+  const totalFixos = Object.values(fixos).reduce((a, b) => a + (Number(b) || 0), 0)
+  const totalVariaveis = Object.values(variaveis).reduce((a, b) => a + (Number(b) || 0), 0)
+
+  // Cartão separado — pode haver sobreposição, mas representa o padrão real
+  // Se cartão for maior que fixos+variáveis, usa cartão como base (usuário não detalhou)
+  const totalDetalhado = totalFixos + totalVariaveis
+  const totalGastos = cartao > totalDetalhado ? cartao : totalDetalhado + cartao
+
+  return { totalFixos, totalVariaveis, totalCartao: cartao, totalGastos }
+}
+
+// ─────────────────────────────────────────────
 //  ANÁLISE DE RENDA
 // ─────────────────────────────────────────────
 function calcularAnaliseRenda(receita, totalGastos) {
   const percentual = totalGastos > 0 ? (totalGastos / receita) * 100 : 0
-  const rendaMinimaIdeal = totalGastos / 0.7 // gastos devem ser no máx 70% da renda
+  const rendaMinimaIdeal = totalGastos / 0.7
   const rendaFaltante = Math.max(0, rendaMinimaIdeal - receita)
   const precisaAumentarRenda = receita < rendaMinimaIdeal && totalGastos > 0
 
@@ -63,27 +85,23 @@ function calcularAnaliseRenda(receita, totalGastos) {
 
   if (totalGastos > receita) {
     tipoProblema = 'deficit'
-    titulo = 'Suas despesas superam sua renda'
-    corpo =
-      'Você está num ciclo deficitário: cada mês fecha com saldo negativo, e isso tende a se acumular em forma de dívida. Antes de estruturar as 6 caixas, o passo zero é fechar esse buraco — e o Método mostra exatamente como fazer isso de forma progressiva.'
+    titulo = 'Você está num ciclo de déficit — e ele tem saída'
+    corpo = 'Seus gastos superam sua renda, criando um ciclo que se auto-alimenta: falta dinheiro, você usa crédito, os juros aumentam os gastos do mês seguinte. Isso não é falta de esforço — é estrutura. O Método 6 Caixas inclui um plano de saída da dívida: um caminho de 3 a 6 meses para fechar o buraco e então estruturar as 6 caixas com a renda que você já tem.'
     cor = '#dc2626'
   } else if (percentual > 85) {
     tipoProblema = 'compressao'
     titulo = 'Sua renda está quase toda comprometida'
-    corpo =
-      'Você ganha e gasta praticamente o mesmo — sem margem para investir, poupar ou reagir a imprevistos. Esse padrão não é falta de disciplina: é um ciclo de compressão financeira. O Método 6 Caixas cria a estrutura para você ter destinos claros para cada parte da renda antes de gastar.'
+    corpo = 'Você ganha e gasta praticamente o mesmo — sem margem para investir, poupar ou reagir a imprevistos. Esse padrão não é falta de disciplina: é um ciclo de compressão financeira. O Método 6 Caixas cria a estrutura para você ter destinos claros para cada parte da renda antes de gastar.'
     cor = '#d97706'
   } else if (percentual > 70) {
     tipoProblema = 'organizacao'
     titulo = 'Você tem margem — mas ela some sem destino'
-    corpo =
-      'Seu comprometimento de renda ainda está num nível administrável, mas sem estrutura o dinheiro "sobra" e desaparece. O Método 6 Caixas transforma essa sobra em patrimônio: cada real tem um destino antes de você tocar nele.'
+    corpo = 'Seu comprometimento de renda ainda está num nível administrável, mas sem estrutura o dinheiro "sobra" e desaparece. O Método 6 Caixas transforma essa sobra em patrimônio: cada real tem um destino antes de você tocar nele.'
     cor = '#f97316'
   } else {
     tipoProblema = 'otimizacao'
     titulo = 'Sua base financeira está saudável'
-    corpo =
-      'Você já tem uma boa proporção entre renda e gastos. O próximo nível é garantir que a margem que sobra esteja construindo algo — reserva, investimento, liberdade. O Método 6 Caixas faz isso de forma automática e sem esforço diário.'
+    corpo = 'Você já tem uma boa proporção entre renda e gastos. O próximo nível é garantir que a margem que sobra esteja construindo algo — reserva, investimento, liberdade. O Método 6 Caixas faz isso de forma automática e sem esforço diário.'
     cor = '#16a34a'
   }
 
@@ -91,58 +109,89 @@ function calcularAnaliseRenda(receita, totalGastos) {
 }
 
 // ─────────────────────────────────────────────
-//  ANÁLISE 6 CAIXAS
+//  ANÁLISE 6 CAIXAS — mapeia campos reais do onboarding
 // ─────────────────────────────────────────────
 const CAIXAS_CONFIG = [
   {
     nome: 'Necessidades',
-    descricao: 'Moradia, alimentação, transporte',
+    descricao: 'Moradia, alimentação, transporte, saúde, contas',
     icone: '🏠',
     idealPct: 55,
-    campo: 'necessidades',
+    camposFixos: ['aluguel', 'contasBasicas', 'internetCelular', 'planoSaude', 'escolaFaculdade'],
+    camposVariaveis: ['alimentacao', 'transporte', 'assinaturas', 'outros'],
+    usoCartao: 'essencial',
   },
   {
     nome: 'Lazer',
-    descricao: 'Entretenimento, saídas, hobbies',
+    descricao: 'Entretenimento, saídas, hobbies, roupas',
     icone: '🎯',
     idealPct: 10,
-    campo: 'lazer',
+    camposFixos: [],
+    camposVariaveis: ['lazer', 'roupasCompras'],
+    usoCartao: 'lazer',
   },
   {
     nome: 'Educação',
-    descricao: 'Cursos, livros, desenvolvimento',
+    descricao: 'Cursos, livros, desenvolvimento pessoal',
     icone: '📚',
     idealPct: 10,
-    campo: 'educacao',
+    camposFixos: [],
+    camposVariaveis: [],
+    usoCartao: null,
   },
   {
     nome: 'Reserva de Emergência',
     descricao: 'Proteção para imprevistos',
     icone: '🛡️',
     idealPct: 10,
-    campo: 'reserva',
+    camposFixos: [],
+    camposVariaveis: [],
+    usoCartao: null,
   },
   {
     nome: 'Investimentos',
     descricao: 'Construção de patrimônio',
     icone: '📈',
     idealPct: 10,
-    campo: 'investimentos',
+    camposFixos: [],
+    camposVariaveis: [],
+    usoCartao: null,
   },
   {
     nome: 'Generosidade',
     descricao: 'Doações, presentes, contribuições',
     icone: '❤️',
     idealPct: 5,
-    campo: 'generosidade',
+    camposFixos: [],
+    camposVariaveis: [],
+    usoCartao: null,
   },
 ]
 
 function calcularAnalise6Caixas(respostas, receita) {
+  const fixos = respostas?.fixos || {}
+  const variaveis = respostas?.variaveis || {}
+  const cartao = parseFloat(respostas?.cartao) || 0
+  const usoCartao = respostas?.usoCartao || ''
+
   return CAIXAS_CONFIG.map((caixa) => {
-    const rawValor = parseFloat(respostas[caixa.campo]) || 0
-    // lazer: se não preenchido, fica zero (não usa fallback)
-    const realValor = rawValor
+    let realValor = caixa.camposFixos.reduce((acc, campo) => {
+      return acc + (Number(fixos[campo]) || 0)
+    }, 0)
+
+    realValor += caixa.camposVariaveis.reduce((acc, campo) => {
+      return acc + (Number(variaveis[campo]) || 0)
+    }, 0)
+
+    if (cartao > 0 && caixa.usoCartao) {
+      if (usoCartao === 'misto') {
+        if (caixa.nome === 'Necessidades') realValor += cartao * 0.5
+        if (caixa.nome === 'Lazer') realValor += cartao * 0.5
+      } else if (usoCartao === caixa.usoCartao) {
+        realValor += cartao
+      }
+    }
+
     const idealValor = (receita * caixa.idealPct) / 100
     const realPct = receita > 0 ? Math.round((realValor / receita) * 100) : 0
     const diff = realValor - idealValor
@@ -195,55 +244,26 @@ function calcularAnalise6Caixas(respostas, receita) {
 }
 
 // ─────────────────────────────────────────────
-//  CALCULAR GASTOS (cartão separado das caixas)
-// ─────────────────────────────────────────────
-function calcularTotalGastos(respostas) {
-  const caixasTotal = CAIXAS_CONFIG.reduce((acc, c) => {
-    // lazer: só inclui se preenchido
-    const val = parseFloat(respostas[c.campo]) || 0
-    return acc + val
-  }, 0)
-
-  // cartão de crédito é separado — pode haver sobreposição com as caixas,
-  // mas representa o padrão de uso real do usuário
-  const cartao = parseFloat(respostas.cartao) || 0
-
-  // Usa o maior entre a soma das caixas e a soma das caixas + cartão se cartão > 0
-  // Lógica: cartão pode ser pago com o que já está nas caixas (necessidades/lazer),
-  // então evitamos dupla contagem. Usamos cartão como proxy apenas se for maior.
-  const totalSemCartao = caixasTotal
-  const totalComCartao = Math.max(caixasTotal, cartao)
-
-  // Se o usuário preencheu cartão, consideramos o maior valor como base real
-  return cartao > 0 ? totalComCartao : totalSemCartao
-}
-
-// ─────────────────────────────────────────────
 //  DIAGNÓSTICO — texto de ciclo e transformação
 // ─────────────────────────────────────────────
 function gerarTextoDiagnostico(risco, percentualGasto, dias, analiseRenda) {
   const { tipoProblema } = analiseRenda
   const endividado = percentualGasto >= 100 || tipoProblema === 'deficit'
 
-  // Título e análise baseados no ciclo
   let titulo, analise
 
   if (endividado) {
     titulo = 'Você está num ciclo de déficit — e ele tem saída'
-    analise =
-      'Seus gastos superam sua renda, o que cria um ciclo que se auto-alimenta: falta dinheiro, você usa crédito, os juros aumentam os gastos do mês seguinte, e o ciclo continua. Isso não é falta de esforço — é estrutura. O primeiro passo é mapear esse ciclo com clareza e criar um plano de saída antes de aplicar o Método 6 Caixas.'
+    analise = 'Seus gastos superam sua renda, o que cria um ciclo que se auto-alimenta: falta dinheiro, você usa crédito, os juros aumentam os gastos do mês seguinte, e o ciclo continua. Isso não é falta de esforço — é estrutura. O primeiro passo é mapear esse ciclo com clareza e criar um plano de saída antes de aplicar o Método 6 Caixas.'
   } else if (risco.nivel === 'vermelho') {
     titulo = 'Seu dinheiro está num ciclo de esgotamento'
-    analise =
-      'Praticamente toda a sua renda vai para gastos imediatos — sem reserva, sem investimento, sem margem. Não é falta de força de vontade: é falta de estrutura. Quando o dinheiro não tem destino definido, ele some. O Método 6 Caixas quebra esse ciclo dando um endereço para cada real antes que você gaste.'
+    analise = 'Praticamente toda a sua renda vai para gastos imediatos — sem reserva, sem investimento, sem margem. Não é falta de força de vontade: é falta de estrutura. Quando o dinheiro não tem destino definido, ele some. O Método 6 Caixas quebra esse ciclo dando um endereço para cada real antes que você gaste.'
   } else if (risco.nivel === 'amarelo') {
     titulo = 'Você está no limiar — e pode virar dos dois lados'
-    analise =
-      'Seu caixa ainda se mantém positivo, mas a margem é pequena. Qualquer imprevisto — uma conta extra, um mês de venda fraca — pode empurrar você para o déficit. Esse é o momento certo de estruturar: quando ainda tem margem para criar o hábito sem pressão.'
+    analise = 'Seu caixa ainda se mantém positivo, mas a margem é pequena. Qualquer imprevisto — uma conta extra, um mês de venda fraca — pode empurrar você para o déficit. Esse é o momento certo de estruturar: quando ainda tem margem para criar o hábito sem pressão.'
   } else {
     titulo = 'Sua base está firme — agora é hora de construir'
-    analise =
-      'Você já tem o controle básico: gasta menos do que ganha. Mas "sobrar dinheiro" sem um destino definido raramente se transforma em patrimônio. O próximo ciclo é o virtuoso: cada real com um endereço, compondo ao longo do tempo.'
+    analise = 'Você já tem o controle básico: gasta menos do que ganha. Mas "sobrar dinheiro" sem um destino definido raramente se transforma em patrimônio. O próximo ciclo é o virtuoso: cada real com um endereço, compondo ao longo do tempo.'
   }
 
   return { titulo, analise }
@@ -251,6 +271,7 @@ function gerarTextoDiagnostico(risco, percentualGasto, dias, analiseRenda) {
 
 // ─────────────────────────────────────────────
 //  CTA — diferenciado para endividados vs organizados
+//  Ambos levam para o mesmo app: metodo6caixas.vercel.app
 // ─────────────────────────────────────────────
 function gerarCTA(percentualGasto, analiseRenda) {
   const endividado = percentualGasto >= 100 || analiseRenda.tipoProblema === 'deficit'
@@ -258,18 +279,16 @@ function gerarCTA(percentualGasto, analiseRenda) {
   if (endividado) {
     return {
       ctaTitulo: 'Antes do Método, existe um passo zero',
-      ctaTexto:
-        'Quem está com gastos maiores que a renda não pode aplicar o Método 6 Caixas diretamente — e tentar fazer isso sem sair do déficit não funciona. O Método inclui um plano de saída da dívida: um caminho de 3 a 6 meses para fechar o buraco e então estruturar as 6 caixas com a renda que você já tem.',
-      ctaLabel: 'Ver o plano de saída da dívida',
-      ctaUrl: CONFIG.CTA_URL_DIVIDA,
+      ctaTexto: 'Quem está com gastos maiores que a renda não pode aplicar o Método 6 Caixas diretamente — e tentar fazer isso sem sair do déficit não funciona. O Método inclui um plano de saída da dívida: um caminho de 3 a 6 meses para fechar o buraco e então estruturar as 6 caixas com a renda que você já tem.',
+      ctaLabel: CONFIG.CTA_LABEL_DIVIDA,
+      ctaUrl: CONFIG.CTA_URL,
       ctaDestaque: true,
     }
   }
 
   return {
     ctaTitulo: 'O Método 6 Caixas resolve exatamente o que você acabou de ver.',
-    ctaTexto:
-      'Uma estrutura que divide sua renda em 6 destinos antes de você gastar — necessidades, lazer, educação, reserva, investimento e generosidade. Quando cada real tem um endereço, o ciclo muda.',
+    ctaTexto: 'Uma estrutura que divide sua renda em 6 destinos antes de você gastar — necessidades, lazer, educação, reserva, investimento e generosidade. Quando cada real tem um endereço, o ciclo muda.',
     ctaLabel: CONFIG.CTA_LABEL,
     ctaUrl: CONFIG.CTA_URL,
     ctaDestaque: false,
@@ -296,8 +315,8 @@ function gerarInsight(risco, dias, percentualGasto) {
 //  FUNÇÃO PRINCIPAL
 // ─────────────────────────────────────────────
 export function gerarDiagnostico(respostas) {
-  const receita = parseFloat(respostas.receita) || 0
-  const totalGastos = calcularTotalGastos(respostas)
+  const receita = parseFloat(respostas?.receita) || 0
+  const { totalFixos, totalVariaveis, totalCartao, totalGastos } = calcularTotais(respostas)
   const sobra = receita - totalGastos
   const percentualGasto = receita > 0 ? Math.round((totalGastos / receita) * 100) : 0
 
@@ -317,6 +336,9 @@ export function gerarDiagnostico(respostas) {
   return {
     receita,
     totalGastos,
+    totalFixos,
+    totalVariaveis,
+    totalCartao,
     sobra,
     percentualGasto,
     dias,
@@ -327,7 +349,6 @@ export function gerarDiagnostico(respostas) {
     insight,
     analiseRenda,
     analise6caixas,
-    // CTA diferenciado
     ctaTitulo: cta.ctaTitulo,
     ctaTexto: cta.ctaTexto,
     ctaLabel: cta.ctaLabel,
