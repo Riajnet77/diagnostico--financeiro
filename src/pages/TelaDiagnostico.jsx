@@ -649,6 +649,26 @@ export default function TelaDiagnostico({ respostas, onReiniciar, onEditar }) {
   useEffect(() => { setTimeout(() => setAnimouDias(true), 300) }, [])
 
   function irParaMetodo() {
+    // ✅ Salva dados do diagnóstico para o Passo Zero no Método 6 Caixas
+    if (d.risco.nivel === 'vermelho' || d.analiseRenda.tipoProblema === 'deficit') {
+      localStorage.setItem('diagnostico_perfil', 'endividado')
+      localStorage.setItem('diagnostico_dados', JSON.stringify({
+        receita: d.receita,
+        totalGastos: d.totalGastos,
+        totalFixos: d.totalFixos,
+        totalVariaveis: d.totalVariaveis,
+        totalCartao: d.totalCartao,
+        deficitMensal: Math.max(0, d.totalGastos - d.receita),
+        variaveis: {
+          lazer: 0,
+          alimentacao: 0,
+          transporte: 0,
+          assinaturas: 0,
+          roupasCompras: 0,
+          outros: 0
+        }
+      }))
+    }
     window.open(d.ctaUrl, '_blank')
   }
 
