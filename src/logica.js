@@ -2,11 +2,8 @@
 //  CONFIGURAÇÃO — URL do Método 6 Caixas
 // ─────────────────────────────────────────────
 export const CONFIG = {
-  // URL de produção do Método 6 Caixas
   CTA_URL: 'https://metodo6caixas.vercel.app/login',
   CTA_LABEL: 'Acessar o Método 6 Caixas',
-  // Para endividados: mesmo destino, mensagem diferente
-  // (o método já inclui o plano de saída da dívida)
   CTA_LABEL_DIVIDA: 'Ver plano de saída — incluído no Método',
 }
 
@@ -27,30 +24,12 @@ export function formatarMoeda(valor) {
 // ─────────────────────────────────────────────
 function calcularRisco(dias, percentualGasto) {
   if (percentualGasto >= 100 || dias <= 10) {
-    return {
-      nivel: 'vermelho',
-      label: 'Ciclo Crítico',
-      cor: '#dc2626',
-      fundo: '#fef2f2',
-      borda: '#fecaca',
-    }
+    return { nivel: 'vermelho', label: 'Ciclo Crítico',  cor: '#dc2626', fundo: '#fef2f2', borda: '#fecaca' }
   }
   if (dias <= 20 || percentualGasto >= 90) {
-    return {
-      nivel: 'amarelo',
-      label: 'Ciclo de Risco',
-      cor: '#d97706',
-      fundo: '#fffbeb',
-      borda: '#fde68a',
-    }
+    return { nivel: 'amarelo',  label: 'Ciclo de Risco', cor: '#d97706', fundo: '#fffbeb', borda: '#fde68a' }
   }
-  return {
-    nivel: 'verde',
-    label: 'Ciclo Estável',
-    cor: '#16a34a',
-    fundo: '#f0fdf4',
-    borda: '#bbf7d0',
-  }
+  return   { nivel: 'verde',    label: 'Ciclo Estável',  cor: '#16a34a', fundo: '#f0fdf4', borda: '#bbf7d0' }
 }
 
 // ─────────────────────────────────────────────
@@ -64,8 +43,6 @@ function calcularTotais(respostas) {
   const totalFixos = Object.values(fixos).reduce((a, b) => a + (Number(b) || 0), 0)
   const totalVariaveis = Object.values(variaveis).reduce((a, b) => a + (Number(b) || 0), 0)
 
-  // Cartão separado — pode haver sobreposição, mas representa o padrão real
-  // Se cartão for maior que fixos+variáveis, usa cartão como base (usuário não detalhou)
   const totalDetalhado = totalFixos + totalVariaveis
   const totalGastos = cartao > totalDetalhado ? cartao : totalDetalhado + cartao
 
@@ -109,14 +86,15 @@ function calcularAnaliseRenda(receita, totalGastos) {
 }
 
 // ─────────────────────────────────────────────
-//  ANÁLISE 6 CAIXAS — mapeia campos reais do onboarding
+//  ANÁLISE 6 CAIXAS
+//  Percentuais alinhados com o Método: 50/10/10/10/10/10
 // ─────────────────────────────────────────────
 const CAIXAS_CONFIG = [
   {
     nome: 'Necessidades',
     descricao: 'Moradia, alimentação, transporte, saúde, contas',
     icone: '🏠',
-    idealPct: 50,
+    idealPct: 50,   // ← 50% (alinhado com "Viver" do Método)
     camposFixos: ['aluguel', 'contasBasicas', 'internetCelular', 'planoSaude', 'escolaFaculdade'],
     camposVariaveis: ['alimentacao', 'transporte', 'assinaturas', 'outros'],
     usoCartao: 'essencial',
@@ -161,7 +139,7 @@ const CAIXAS_CONFIG = [
     nome: 'Generosidade',
     descricao: 'Doações, presentes, contribuições',
     icone: '❤️',
-    idealPct: 10,
+    idealPct: 10,   // ← 10% (alinhado com "Doação" do Método)
     camposFixos: [],
     camposVariaveis: [],
     usoCartao: null,
@@ -200,32 +178,23 @@ function calcularAnalise6Caixas(respostas, receita) {
 
     if (realValor === 0) {
       status = 'zerado'
-      cor = '#6b7280'
-      fundo = '#f9fafb'
-      borda = '#e5e7eb'
+      cor = '#6b7280'; fundo = '#f9fafb'; borda = '#e5e7eb'
       label = 'Não alocado'
       alerta = `Nenhum valor destinado para ${caixa.nome.toLowerCase()} — esse destino está invisível no seu orçamento.`
     } else if (diff > idealValor * 0.3) {
       status = 'risco'
-      cor = '#dc2626'
-      fundo = '#fef2f2'
-      borda = '#fecaca'
+      cor = '#dc2626'; fundo = '#fef2f2'; borda = '#fecaca'
       label = `+${Math.round(((realValor - idealValor) / idealValor) * 100)}% acima`
       alerta = `${caixa.nome} está consumindo ${formatarMoeda(realValor - idealValor)} a mais do que o ideal.`
     } else if (diff < -idealValor * 0.3) {
       status = 'baixo'
-      cor = '#d97706'
-      fundo = '#fffbeb'
-      borda = '#fde68a'
+      cor = '#d97706'; fundo = '#fffbeb'; borda = '#fde68a'
       label = `${Math.round(((idealValor - realValor) / idealValor) * 100)}% abaixo`
       alerta = `Você está investindo menos do que deveria em ${caixa.nome.toLowerCase()}.`
     } else {
       status = 'ok'
-      cor = '#16a34a'
-      fundo = '#f0fdf4'
-      borda = '#bbf7d0'
-      label = 'No caminho certo'
-      alerta = null
+      cor = '#16a34a'; fundo = '#f0fdf4'; borda = '#bbf7d0'
+      label = 'No caminho certo'; alerta = null
     }
 
     return {
@@ -271,7 +240,6 @@ function gerarTextoDiagnostico(risco, percentualGasto, dias, analiseRenda) {
 
 // ─────────────────────────────────────────────
 //  CTA — diferenciado para endividados vs organizados
-//  Ambos levam para o mesmo app: metodo6caixas.vercel.app
 // ─────────────────────────────────────────────
 function gerarCTA(percentualGasto, analiseRenda) {
   const endividado = percentualGasto >= 100 || analiseRenda.tipoProblema === 'deficit'
@@ -320,7 +288,6 @@ export function gerarDiagnostico(respostas) {
   const sobra = receita - totalGastos
   const percentualGasto = receita > 0 ? Math.round((totalGastos / receita) * 100) : 0
 
-  // Dias de caixa
   const gastosDiarios = totalGastos / 30
   const diasRaw = gastosDiarios > 0 ? Math.round(sobra / gastosDiarios) : 999
   const dias = Math.max(0, Math.min(diasRaw, 999))
