@@ -131,12 +131,12 @@ export default function TelaInicio({ onAvancar }) {
           marginBottom: 48,
         }}>
           {[
-            { pct: '55%', nome: 'Viver',      cor: '#f97316' },
+            { pct: '50%', nome: 'Viver',      cor: '#f97316' },
             { pct: '10%', nome: 'Investir',   cor: '#16a34a' },
             { pct: '10%', nome: 'Sonhos',     cor: '#2563eb' },
             { pct: '10%', nome: 'Educação',   cor: '#7c3aed' },
             { pct: '10%', nome: 'Lazer',      cor: '#db2777' },
-            { pct: '5%',  nome: 'Doação',     cor: '#0891b2' },
+            { pct: '10%', nome: 'Doação',     cor: '#0891b2' },
           ].map((c, i) => (
             <div key={i} style={{
               background: '#f9f8f6',
