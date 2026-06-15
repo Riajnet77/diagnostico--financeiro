@@ -43,8 +43,7 @@ function calcularTotais(respostas) {
   const totalFixos = Object.values(fixos).reduce((a, b) => a + (Number(b) || 0), 0)
   const totalVariaveis = Object.values(variaveis).reduce((a, b) => a + (Number(b) || 0), 0)
 
-  const totalDetalhado = totalFixos + totalVariaveis
-  const totalGastos = cartao > totalDetalhado ? cartao : totalDetalhado + cartao
+  const totalGastos = totalFixos + totalVariaveis + cartao
 
   return { totalFixos, totalVariaveis, totalCartao: cartao, totalGastos }
 }
