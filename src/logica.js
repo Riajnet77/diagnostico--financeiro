@@ -161,13 +161,14 @@ function calcularAnalise6Caixas(respostas, receita) {
     }, 0)
 
     if (cartao > 0 && caixa.usoCartao) {
-      if (usoCartao === 'misto') {
-        if (caixa.nome === 'Necessidades') realValor += cartao * 0.5
-        if (caixa.nome === 'Lazer') realValor += cartao * 0.5
-      } else if (usoCartao === caixa.usoCartao) {
-        realValor += cartao
-      }
-    }
+  if (!usoCartao || usoCartao === 'misto') {
+    // Se não selecionou uso ou é misto: divide 50/50 entre Necessidades e Lazer
+    if (caixa.nome === 'Necessidades') realValor += cartao * 0.5
+    if (caixa.nome === 'Lazer') realValor += cartao * 0.5
+  } else if (usoCartao === caixa.usoCartao) {
+    realValor += cartao
+  }
+}
 
     const idealValor = (receita * caixa.idealPct) / 100
     const realPct = receita > 0 ? Math.round((realValor / receita) * 100) : 0
