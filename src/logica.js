@@ -33,7 +33,7 @@ function calcularRisco(dias, percentualGasto) {
 }
 
 // ─────────────────────────────────────────────
-//  CALCULAR TOTAIS — lê estrutura real do onboarding
+//  CALCULAR TOTAIS
 // ─────────────────────────────────────────────
 function calcularTotais(respostas) {
   const fixos = respostas?.fixos || {}
@@ -42,7 +42,6 @@ function calcularTotais(respostas) {
 
   const totalFixos = Object.values(fixos).reduce((a, b) => a + (Number(b) || 0), 0)
   const totalVariaveis = Object.values(variaveis).reduce((a, b) => a + (Number(b) || 0), 0)
-
   const totalGastos = totalFixos + totalVariaveis + cartao
 
   return { totalFixos, totalVariaveis, totalCartao: cartao, totalGastos }
@@ -86,14 +85,13 @@ function calcularAnaliseRenda(receita, totalGastos) {
 
 // ─────────────────────────────────────────────
 //  ANÁLISE 6 CAIXAS
-//  Percentuais alinhados com o Método: 50/10/10/10/10/10
 // ─────────────────────────────────────────────
 const CAIXAS_CONFIG = [
   {
     nome: 'Necessidades',
     descricao: 'Moradia, alimentação, transporte, saúde, contas',
     icone: '🏠',
-    idealPct: 50,   // ← 50% (alinhado com "Viver" do Método)
+    idealPct: 50,
     camposFixos: ['aluguel', 'contasBasicas', 'internetCelular', 'planoSaude', 'escolaFaculdade'],
     camposVariaveis: ['alimentacao', 'transporte', 'assinaturas', 'outros'],
     usoCartao: 'essencial',
@@ -138,7 +136,7 @@ const CAIXAS_CONFIG = [
     nome: 'Generosidade',
     descricao: 'Doações, presentes, contribuições',
     icone: '❤️',
-    idealPct: 10,   // ← 10% (alinhado com "Doação" do Método)
+    idealPct: 10,
     camposFixos: [],
     camposVariaveis: [],
     usoCartao: null,
@@ -160,15 +158,20 @@ function calcularAnalise6Caixas(respostas, receita) {
       return acc + (Number(variaveis[campo]) || 0)
     }, 0)
 
+    // Distribuição do cartão por uso declarado
     if (cartao > 0 && caixa.usoCartao) {
-  if (!usoCartao || usoCartao === 'misto') {
-    // Se não selecionou uso ou é misto: divide 50/50 entre Necessidades e Lazer
-    if (caixa.nome === 'Necessidades') realValor += cartao * 0.5
-    if (caixa.nome === 'Lazer') realValor += cartao * 0.5
-  } else if (usoCartao === caixa.usoCartao) {
-    realValor += cartao
-  }
-}
+      if (usoCartao === 'misto') {
+        if (caixa.nome === 'Necessidades') realValor += cartao * 0.5
+        if (caixa.nome === 'Lazer') realValor += cartao * 0.5
+      } else if (usoCartao === 'essencial' && caixa.nome === 'Necessidades') {
+        realValor += cartao
+      } else if (usoCartao === 'lazer' && caixa.nome === 'Lazer') {
+        realValor += cartao
+      } else if (!usoCartao && caixa.nome === 'Necessidades') {
+        // Se não informou uso, assume essencial (necessidades)
+        realValor += cartao
+      }
+    }
 
     const idealValor = (receita * caixa.idealPct) / 100
     const realPct = receita > 0 ? Math.round((realValor / receita) * 100) : 0
@@ -213,7 +216,7 @@ function calcularAnalise6Caixas(respostas, receita) {
 }
 
 // ─────────────────────────────────────────────
-//  DIAGNÓSTICO — texto de ciclo e transformação
+//  DIAGNÓSTICO
 // ─────────────────────────────────────────────
 function gerarTextoDiagnostico(risco, percentualGasto, dias, analiseRenda) {
   const { tipoProblema } = analiseRenda
@@ -239,7 +242,7 @@ function gerarTextoDiagnostico(risco, percentualGasto, dias, analiseRenda) {
 }
 
 // ─────────────────────────────────────────────
-//  CTA — diferenciado para endividados vs organizados
+//  CTA
 // ─────────────────────────────────────────────
 function gerarCTA(percentualGasto, analiseRenda) {
   const endividado = percentualGasto >= 100 || analiseRenda.tipoProblema === 'deficit'
@@ -264,7 +267,7 @@ function gerarCTA(percentualGasto, analiseRenda) {
 }
 
 // ─────────────────────────────────────────────
-//  INSIGHT — frase de fechamento por nível
+//  INSIGHT
 // ─────────────────────────────────────────────
 function gerarInsight(risco, dias, percentualGasto) {
   if (percentualGasto >= 100) {
