@@ -69,12 +69,12 @@ function OpcaoCard({ valor, label, desc, icone, selecionado, onSelect }) {
   )
 }
 
-// Input de moeda que lê e escreve direto no estado pai — sem estado interno
 function InputMoeda({ valor, onChange, destaque, icone, label, placeholder = '0', autoFocus = false }) {
   const display = valor > 0 ? Number(valor).toLocaleString('pt-BR') : ''
   function handle(e) {
     const d = e.target.value.replace(/\D/g, '')
-    onChange(Number(d) || 0)
+    const v = Number(d) || 0
+    onChange(Math.min(v, 9999999))
   }
   return (
     <div style={{
@@ -181,7 +181,7 @@ function TelaLoading({ onConcluir }) {
 const ETAPAS = ['problema', 'receita', 'despesas', 'loading']
 
 export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
-  const [etapa, setEtapa] = useState(dadosIniciais ? 2 : 0) // se tem dados, vai direto para despesas
+  const [etapa, setEtapa] = useState(dadosIniciais ? 2 : 0)
   const [dados, setDados] = useState(dadosIniciais || {
     problema:'', receita:0, tipoRenda:'',
     fixos: { aluguel:0, contasBasicas:0, internetCelular:0, planoSaude:0, parcelasCredito:0, escolaFaculdade:0 },
@@ -217,7 +217,6 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
 
       <main style={{ flex:1, maxWidth:560, margin:'0 auto', padding:'32px 24px 24px', width:'100%' }} key={etapa}>
 
-        {/* PROBLEMA */}
         {etapaAtual === 'problema' && (
           <div style={{ animation:'slideIn 0.3s ease forwards' }}>
             <div style={{ fontSize:12, fontWeight:800, color:'#f97316', letterSpacing:'0.1em', marginBottom:12 }}>IDENTIFICAÇÃO</div>
@@ -238,7 +237,6 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
           </div>
         )}
 
-        {/* RECEITA */}
         {etapaAtual === 'receita' && (
           <div style={{ animation:'slideIn 0.3s ease forwards' }}>
             <div style={{ fontSize:12, fontWeight:800, color:'#f97316', letterSpacing:'0.1em', marginBottom:12 }}>SUA RENDA</div>
@@ -251,7 +249,11 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
               <input
                 type="tel" inputMode="numeric" autoFocus
                 value={dados.receita > 0 ? Number(dados.receita).toLocaleString('pt-BR') : ''}
-                onChange={e => { const d=e.target.value.replace(/\D/g,''); setDados(p=>({...p,receita:Number(d)||0})) }}
+                onChange={e => {
+                  const d = e.target.value.replace(/\D/g,'')
+                  const v = Number(d) || 0
+                  setDados(p=>({...p, receita: Math.min(v, 9999999)}))
+                }}
                 placeholder="0"
                 style={{ width:'100%', padding:'20px 20px 20px 68px', background:'#fff', border:'2px solid #e5e5e5', borderRadius:14, fontSize:36, fontWeight:900, color:'#0f0f0f', outline:'none', letterSpacing:'-0.02em', transition:'border-color 0.2s, box-shadow 0.2s' }}
                 onFocus={e=>{ e.target.style.borderColor='#f97316'; e.target.style.boxShadow='0 0 0 3px rgba(249,115,22,0.1)' }}
@@ -272,7 +274,6 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
           </div>
         )}
 
-        {/* DESPESAS */}
         {etapaAtual === 'despesas' && (
           <div style={{ animation:'slideIn 0.3s ease forwards' }}>
             <div style={{ fontSize:12, fontWeight:800, color:'#f97316', letterSpacing:'0.1em', marginBottom:12 }}>SUAS DESPESAS</div>
@@ -281,7 +282,6 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
             </h2>
             <p style={{ fontSize:15, color:'#737373', marginBottom:20 }}>Preencha o que se aplica. O total aparece ao vivo.</p>
 
-            {/* Painel ao vivo */}
             <div style={{ background:'#f9f8f6', border:'1px solid #e5e5e5', borderRadius:14, padding:'16px', marginBottom:24, position:'sticky', top:72, zIndex:5 }}>
               <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:12 }}>
                 {[
@@ -312,7 +312,6 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
               {percentual > 80 && percentual <= 90 && <div style={{ marginTop:10, background:'#fffbeb', borderRadius:8, padding:'8px 12px', fontSize:13, color:'#92400e', fontWeight:600 }}>⚡ Atenção: {percentual}% da renda comprometida.</div>}
             </div>
 
-            {/* Fixos */}
             <SecaoDespesas
               titulo="Despesas Fixas" icone="📌" cor="#525252"
               campos={[
@@ -329,7 +328,6 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
 
             <div style={{ height:1, background:'#e5e5e5', margin:'20px 0' }} />
 
-            {/* Cartão */}
             <div style={{ marginBottom:8 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', marginBottom:8, borderBottom:'2px solid rgba(220,38,38,0.15)' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -340,7 +338,6 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
                 {totalCartao > 0 && <span style={{ fontSize:14, fontWeight:800, color:'#dc2626' }}>{formatarMoeda(totalCartao)}</span>}
               </div>
 
-              {/* Input direto — sem estado interno */}
               <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px', background:'#fef2f2', border:'1.5px solid #fecaca', borderRadius:10 }}>
                 <span style={{ fontSize:20, flexShrink:0 }}>💳</span>
                 <label style={{ fontSize:14, fontWeight:600, color:'#525252', flex:1 }}>Total da fatura mensal</label>
@@ -351,7 +348,8 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
                     value={dados.cartao > 0 ? Number(dados.cartao).toLocaleString('pt-BR') : ''}
                     onChange={e => {
                       const d = e.target.value.replace(/\D/g,'')
-                      setDados(p => ({...p, cartao: Number(d) || 0}))
+                      const v = Number(d) || 0
+                      setDados(p => ({...p, cartao: Math.min(v, 9999999)}))
                     }}
                     placeholder="0"
                     style={{ width:100, padding:'8px 10px', background:'#fff', border:'1.5px solid #fecaca', borderRadius:8, fontSize:16, fontWeight:700, color:'#0f0f0f', outline:'none', textAlign:'right' }}
@@ -362,7 +360,6 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
               </div>
               <p style={{ fontSize:12, color:'#a3a3a3', marginTop:8, paddingLeft:4 }}>Inclua compras parceladas, assinaturas e qualquer gasto no crédito</p>
 
-              {/* Pergunta de uso — aparece quando cartao > 0 */}
               {dados.cartao > 0 && (
                 <div style={{ marginTop:14 }}>
                   <p style={{ fontSize:13, fontWeight:700, color:'#0f0f0f', marginBottom:10 }}>Seu cartão é usado principalmente para:</p>
@@ -403,7 +400,6 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
 
             <div style={{ height:1, background:'#e5e5e5', margin:'20px 0' }} />
 
-            {/* Variáveis */}
             <SecaoDespesas
               titulo="Despesas Variáveis" icone="📊" cor="#f97316"
               campos={[
