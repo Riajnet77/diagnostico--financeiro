@@ -201,6 +201,7 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
   function podeAvancar() {
     if (etapaAtual === 'problema') return !!dados.problema
     if (etapaAtual === 'receita')  return dados.receita > 0 && !!dados.tipoRenda
+    if (etapaAtual === 'despesas') return totalGastos <= 99999999
     return true
   }
 
