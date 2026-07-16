@@ -69,12 +69,15 @@ function OpcaoCard({ valor, label, desc, icone, selecionado, onSelect }) {
   )
 }
 
+// Limite máximo por campo: R$ 99.999
+const LIMITE_CAMPO = 99999
+
 function InputMoeda({ valor, onChange, destaque, icone, label, placeholder = '0', autoFocus = false }) {
   const display = valor > 0 ? Number(valor).toLocaleString('pt-BR') : ''
   function handle(e) {
     const d = e.target.value.replace(/\D/g, '')
     const v = Number(d) || 0
-    onChange(Math.min(v, 9999999))
+    onChange(Math.min(v, LIMITE_CAMPO))
   }
   return (
     <div style={{
@@ -179,6 +182,8 @@ function TelaLoading({ onConcluir }) {
 }
 
 const ETAPAS = ['problema', 'receita', 'despesas', 'loading']
+const LIMITE_RECEITA = 999999
+const LIMITE_TOTAL_GASTOS = 999999
 
 export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
   const [etapa, setEtapa] = useState(dadosIniciais ? 2 : 0)
@@ -197,11 +202,12 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
   const totalGastos    = totalFixos + totalCartao + totalVariaveis
   const percentual     = dados.receita > 0 ? Math.round((totalGastos/dados.receita)*100) : 0
   const corPercentual  = percentual > 90 ? '#dc2626' : percentual > 80 ? '#d97706' : '#16a34a'
+  const gastosAbsurdos = totalGastos > LIMITE_TOTAL_GASTOS
 
   function podeAvancar() {
     if (etapaAtual === 'problema') return !!dados.problema
-    if (etapaAtual === 'receita')  return dados.receita > 0 && !!dados.tipoRenda
-    if (etapaAtual === 'despesas') return totalGastos <= 99999999
+    if (etapaAtual === 'receita')  return dados.receita > 0 && dados.receita <= LIMITE_RECEITA && !!dados.tipoRenda
+    if (etapaAtual === 'despesas') return !gastosAbsurdos
     return true
   }
 
@@ -253,7 +259,7 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
                 onChange={e => {
                   const d = e.target.value.replace(/\D/g,'')
                   const v = Number(d) || 0
-                  setDados(p=>({...p, receita: Math.min(v, 9999999)}))
+                  setDados(p=>({...p, receita: Math.min(v, LIMITE_RECEITA)}))
                 }}
                 placeholder="0"
                 style={{ width:'100%', padding:'20px 20px 20px 68px', background:'#fff', border:'2px solid #e5e5e5', borderRadius:14, fontSize:36, fontWeight:900, color:'#0f0f0f', outline:'none', letterSpacing:'-0.02em', transition:'border-color 0.2s, box-shadow 0.2s' }}
@@ -309,8 +315,13 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
                   </div>
                 )}
               </div>
-              {percentual > 90 && <div style={{ marginTop:10, background:'#fef2f2', borderRadius:8, padding:'8px 12px', fontSize:13, color:'#991b1b', fontWeight:600 }}>⚠️ Seus gastos comprometem {percentual}% da renda — isso é crítico.</div>}
-              {percentual > 80 && percentual <= 90 && <div style={{ marginTop:10, background:'#fffbeb', borderRadius:8, padding:'8px 12px', fontSize:13, color:'#92400e', fontWeight:600 }}>⚡ Atenção: {percentual}% da renda comprometida.</div>}
+              {gastosAbsurdos && (
+                <div style={{ marginTop:10, background:'#fef2f2', borderRadius:8, padding:'8px 12px', fontSize:13, color:'#991b1b', fontWeight:600 }}>
+                  ⚠️ Total de gastos não pode ultrapassar {formatarMoeda(LIMITE_TOTAL_GASTOS)}. Revise os valores.
+                </div>
+              )}
+              {!gastosAbsurdos && percentual > 90 && <div style={{ marginTop:10, background:'#fef2f2', borderRadius:8, padding:'8px 12px', fontSize:13, color:'#991b1b', fontWeight:600 }}>⚠️ Seus gastos comprometem {percentual}% da renda — isso é crítico.</div>}
+              {!gastosAbsurdos && percentual > 80 && percentual <= 90 && <div style={{ marginTop:10, background:'#fffbeb', borderRadius:8, padding:'8px 12px', fontSize:13, color:'#92400e', fontWeight:600 }}>⚡ Atenção: {percentual}% da renda comprometida.</div>}
             </div>
 
             <SecaoDespesas
@@ -350,7 +361,7 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
                     onChange={e => {
                       const d = e.target.value.replace(/\D/g,'')
                       const v = Number(d) || 0
-                      setDados(p => ({...p, cartao: Math.min(v, 9999999)}))
+                      setDados(p => ({...p, cartao: Math.min(v, LIMITE_CAMPO)}))
                     }}
                     placeholder="0"
                     style={{ width:100, padding:'8px 10px', background:'#fff', border:'1.5px solid #fecaca', borderRadius:8, fontSize:16, fontWeight:700, color:'#0f0f0f', outline:'none', textAlign:'right' }}
