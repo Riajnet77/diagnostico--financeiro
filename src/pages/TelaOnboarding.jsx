@@ -70,7 +70,7 @@ function OpcaoCard({ valor, label, desc, icone, selecionado, onSelect }) {
 }
 
 // Limite máximo por campo: R$ 99.999
-const LIMITE_CAMPO = 50000
+const LIMITE_CAMPO = 999999
 
 function InputMoeda({ valor, onChange, destaque, icone, label, placeholder = '0', autoFocus = false }) {
   const display = valor > 0 ? Number(valor).toLocaleString('pt-BR') : ''
@@ -182,8 +182,8 @@ function TelaLoading({ onConcluir }) {
 }
 
 const ETAPAS = ['problema', 'receita', 'despesas', 'loading']
-const LIMITE_RECEITA = 500000
-const LIMITE_TOTAL_GASTOS = 500000
+const LIMITE_RECEITA = 9999999
+const LIMITE_TOTAL_GASTOS = 9999999
 
 export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
   const [etapa, setEtapa] = useState(dadosIniciais ? 2 : 0)
@@ -202,8 +202,8 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
   const totalGastos    = totalFixos + totalCartao + totalVariaveis
   const percentual     = dados.receita > 0 ? Math.round((totalGastos/dados.receita)*100) : 0
   const corPercentual  = percentual > 90 ? '#dc2626' : percentual > 80 ? '#d97706' : '#16a34a'
-  const gastosAbsurdos = totalGastos > LIMITE_TOTAL_GASTOS
-
+  // Bloqueia apenas se gastos forem mais de 10x a receita (claramente erro de digitação)
+  const gastosAbsurdos = dados.receita > 0 && totalGastos > dados.receita * 10
   function podeAvancar() {
     if (etapaAtual === 'problema') return !!dados.problema
     if (etapaAtual === 'receita')  return dados.receita > 0 && dados.receita <= LIMITE_RECEITA && !!dados.tipoRenda
