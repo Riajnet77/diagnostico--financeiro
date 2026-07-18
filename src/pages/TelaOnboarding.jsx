@@ -189,10 +189,10 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
   const [etapa, setEtapa] = useState(dadosIniciais ? 2 : 0)
   const [dados, setDados] = useState(dadosIniciais || {
     problema:'', receita:0, tipoRenda:'',
-    fixos: { aluguel:0, contasBasicas:0, internetCelular:0, planoSaude:0, parcelasCredito:0, escolaFaculdade:0 },
-    cartao: 0,
-    usoCartao: '',
-    variaveis: { alimentacao:0, transporte:0, lazer:0, assinaturas:0, roupasCompras:0, outros:0 },
+   fixos: { aluguel:0, contasBasicas:0, internetCelular:0, planoSaude:0, academia:0, medicamentos:0, parcelasCredito:0, escolaFaculdade:0, diarista:0, pet:0 },
+   cartao: 0,
+   usoCartao: '',
+   variaveis: { alimentacao:0, transporte:0, salaobeleza:0, lazer:0, assinaturas:0, roupasCompras:0, viagens:0, outros:0 },
   })
 
   const etapaAtual = ETAPAS[etapa]
@@ -331,8 +331,12 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
                 { key:'contasBasicas',   icone:'💡', label:'Luz / Água / Gás' },
                 { key:'internetCelular', icone:'📱', label:'Internet / Celular' },
                 { key:'planoSaude',      icone:'🏥', label:'Plano de saúde' },
+                { key:'academia',        icone:'💪', label:'Academia / Saúde física' },
+                { key:'medicamentos',    icone:'💊', label:'Medicamentos / Farmácia' },
                 { key:'parcelasCredito', icone:'💳', label:'Parcelas / Empréstimos' },
                 { key:'escolaFaculdade', icone:'🎓', label:'Escola / Faculdade' },
+                { key:'diarista',        icone:'🧹', label:'Diarista / Faxineira' },
+                { key:'pet',             icone:'🐾', label:'Pet (ração, vet, banho)' },
               ]}
               valores={dados.fixos}
               onChange={(k,v) => setDados(d=>({...d, fixos:{...d.fixos,[k]:v}}))}
@@ -417,9 +421,11 @@ export default function TelaOnboarding({ onConcluir, dadosIniciais }) {
               campos={[
                 { key:'alimentacao',   icone:'🛒', label:'Alimentação / Mercado / Delivery' },
                 { key:'transporte',    icone:'🚗', label:'Transporte / Combustível / Uber' },
+                { key:'salaobeleza',   icone:'💇', label:'Salão / Barbearia / Estética' },
                 { key:'lazer',         icone:'🎭', label:'Lazer / Restaurantes / Passeios' },
                 { key:'assinaturas',   icone:'📺', label:'Assinaturas (streaming, apps)' },
                 { key:'roupasCompras', icone:'👕', label:'Roupas / Compras diversas' },
+                { key:'viagens',       icone:'✈️', label:'Viagens / Hospedagem' },
                 { key:'outros',        icone:'📦', label:'Outros / Imprevistos' },
               ]}
               valores={dados.variaveis}
